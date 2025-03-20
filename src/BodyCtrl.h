@@ -11,6 +11,15 @@ private:
     int jointsGoalPos[12]; // array to store the goal position of each joint
     int directionArray[12]; // array to store the direction of each joint
     int jointID[12] = {52, 53, 51, 42, 43, 41, 22, 23, 21, 32, 33, 31};
+    // [0]ping status
+    // [1]position
+    // [2]speed
+    // [3]load
+    // [4]voltage
+    // [5]temperature
+    // [6]moving
+    // [7]current
+    int servoFeedback[0];
 
 public:
     BodyCtrl() {
@@ -47,6 +56,24 @@ public:
     void jointRad(int joint, double rad);
     void moveTrigger();
     void stand();
+
+    
+    // servo config
+    void setBaudRate(int baud);
+
+    // SMS/ST Servo Ctrl
+    void changeID(int oldID, int newID);
+    void setMiddle(int id);
+    int* feedBack(int id);
+    void torqueLock(int id, int state);
+    void wheelMode(int id);
+    void servoMode(int id);
+    void writePos(int id, int pos, int speed, int acc);
+    void writeSpd(int id, int speed, int acc);
+    void regWritePos(int id, int pos, int speed, int acc);
+    void regMoveTrigger();
+    void syncWritePos(int id[], int pos[], int speed[], int acc[], int len);
+    void syncWriteSpd(int id[], int speed[], int acc[], int len);
 };
 
 #endif // BODYCTRL_H

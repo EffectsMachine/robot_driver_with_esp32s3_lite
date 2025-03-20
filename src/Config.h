@@ -17,6 +17,9 @@
 // pin for the debug
 #define DEBUG_PIN 12
 
+// IIC
+#define IIC_SDA 6
+#define IIC_SCL 7
 
 
 // --- Debug Configuration ---
@@ -65,12 +68,26 @@ static int timeOffset = 50;
 
 
 
+// SMS/ST Servo Ctrl
+// {"T":150}
+
+
 
 // id 0 -> left LED
 // id 1 -> right LED
 // JSON cmds: [T:201, set:[id, r, g, b]]
 // {"T":201,"set":[0,9,0,0]}
 #define CMD_SET_COLOR 201
+// ctrl oled display a single line
+// updateFlag = 0 -> no update, updateFlag = 1 -> update
+// {"T":202,"line":1,"text":"Hello, world!","update":0}
+#define CMD_DISPLAY_SINGLE 202
+// oled display update
+// {"T":203}
+#define CMD_DISPLAY_UPDATE 203
+// ctrl oled display a frame
+// {"T":204,"l1":"Hello, world!","l2":"Hello, world!","l3":"Hello, world!","l4":"Hello, world!"}
+#define CMD_DISPLAY_FRAME 204
 
 
 

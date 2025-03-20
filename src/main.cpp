@@ -2,18 +2,25 @@
 // This file is the entry point of the program.
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <Wire.h>
+#include "USB.h"
+#include "USBCDC.h"
+#include "tusb.h"
 #include "Config.h"
 #include "RGBLight.h"
 #include "BodyCtrl.h"
 #include "FilesCtrl.h"
+#include "ScreenCtrl.h"
 
 JsonDocument jsonCmdReceive;
 JsonDocument jsonFeedback;
+USBCDC USBSerial; // Declare USBSerial as an instance of USBCDC
 DeserializationError err;
 String outputString;
 RGBLight led;
 BodyCtrl bodyCtrl;
 FilesCtrl filesCtrl;
+ScreenCtrl screenCtrl;
 
 int jointsZeroPos[12];
 int jointsCurrentPos[12];
@@ -22,7 +29,13 @@ void runMission(String missionName, int intervalTime, int loopTimes);
 
 void setup() {
   Serial.begin(BAUD_RATE);
+  Wire.begin(IIC_SDA, IIC_SCL);
   Serial.println("device starting...");
+
+  // fake args, it will be ignored by the USB stack, default baudrate is 12Mbps
+  USBSerial.begin(12000000);
+  USB.begin();
+  USBSerial.println("ESP32-S3 USB CDC DONE!");
 
   led.init();
   filesCtrl.init();
@@ -30,11 +43,15 @@ void setup() {
   bodyCtrl.init();
   bodyCtrl.jointMiddle();
 
+  screenCtrl.init();
+  screenCtrl.displayText("LYgion", 0, 0, 2);
+  screenCtrl.displayText("Robotics", 0, 16, 2);
+
   if(!filesCtrl.checkMission("boot")) {
     filesCtrl.createMission("boot", "this is the boot mission.");
   } 
   runMission("boot", 0, 1);
-  bodyCtrl.stand(); // need to check T105 first
+  // bodyCtrl.stand(); // need to check T105 first
 }
 
 bool runStep(String missionName, int step) {
@@ -153,7 +170,21 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                                      jsonCmdInput["set"][2], 
                                      jsonCmdInput["set"][3]);
 												break;
-  
+  case CMD_DISPLAY_SINGLE:
+                        screenCtrl.changeSingleLine(jsonCmdInput["line"], 
+                                                    jsonCmdInput["text"], 
+                                                    jsonCmdInput["update"]);
+                        break;
+  case CMD_DISPLAY_UPDATE:
+                        screenCtrl.updateFrame();
+                        break;
+  case CMD_DISPLAY_FRAME:
+                        screenCtrl.changeSingleLine(1, jsonCmdInput["l1"], false);
+                        screenCtrl.changeSingleLine(2, jsonCmdInput["l2"], false);
+                        screenCtrl.changeSingleLine(3, jsonCmdInput["l3"], false);
+                        screenCtrl.changeSingleLine(4, jsonCmdInput["l4"], true);
+                        break;
+
 
 
   case CMD_SCAN_FILES:
@@ -207,7 +238,37 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   }
 }
 
+// USB CDC receive callback
+void tud_cdc_rx_cb(uint8_t itf) {
+  static String receivedData;
+  char buffer[64];
+  uint32_t count = tud_cdc_read(buffer, sizeof(buffer));
 
+  for (uint32_t i = 0; i < count; i++) {
+    char receivedChar = buffer[i];
+    receivedData += receivedChar;
+
+    // Detect the end of the JSON string based on a specific termination character
+    if (receivedChar == '\n') {
+      // Now we have received the complete JSON string
+      DeserializationError err = deserializeJson(jsonCmdReceive, receivedData);
+      if (err == DeserializationError::Ok) {
+        if (InfoPrint == 1) {
+          USBSerial.print(receivedData);
+        }
+        jsonCmdReceiveHandler(jsonCmdReceive);
+      } else {
+        // Handle JSON parsing error here
+        if (InfoPrint == 1) {
+          USBSerial.print("JSON parsing error: ");
+          USBSerial.println(err.c_str());
+        }
+      }
+      // Reset the receivedData for the next JSON string
+      receivedData = "";
+    }
+  }
+}
 
 
 void serialCtrl() {
@@ -241,7 +302,11 @@ void serialCtrl() {
 
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  unsigned long startTime = micros(); // Record the start time in microseconds
   serialCtrl();
+  unsigned long endTime = micros(); // Record the end time in microseconds
+  USBSerial.print("serialCtrl execution time: ");
+  USBSerial.print(endTime - startTime);
+  USBSerial.println(" µs");
 }
 
