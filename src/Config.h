@@ -127,6 +127,19 @@ static int timeOffset = 50;
 
 
 
+// --- Wireless Configuration ---
+// 0 -> no wifi, 1 -> Auto, 2 -> AP, 3 -> STA
+#define CMD_SET_WIFI_MODE 400
+#define CMD_SET_AP 401
+#define CMD_SET_STA 402
+#define CMD_WIFI_INFO 403
+#define CMD_WIFI_STOP 404
+
+// 0 -> no esp-now, 1 -> start esp-now
+#define CMD_SET_ESP_NOW_MODE 410
+
+
+
 // --- System Configuration ---
 // the time for ESP32 to reboot after receiving a reboot command
 // {"T":600}

@@ -6,8 +6,10 @@
 #include "USB.h"
 #include "USBCDC.h"
 #include "tusb.h"
+// #include "esp_heap_caps.h"
+
 #include "Config.h"
-#include "RGBLight.h"
+// #include "RGBLight.h"
 #include "BodyCtrl.h"
 #include "FilesCtrl.h"
 #include "ScreenCtrl.h"
@@ -17,7 +19,7 @@ JsonDocument jsonFeedback;
 USBCDC USBSerial; // Declare USBSerial as an instance of USBCDC
 DeserializationError err;
 String outputString;
-RGBLight led;
+// RGBLight led;
 BodyCtrl bodyCtrl;
 FilesCtrl filesCtrl;
 ScreenCtrl screenCtrl;
@@ -28,20 +30,20 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput);
 void runMission(String missionName, int intervalTime, int loopTimes);
 
 void setup() {
-  Serial.begin(BAUD_RATE);
+  Serial0.begin(BAUD_RATE);
   Wire.begin(IIC_SDA, IIC_SCL);
-  Serial.println("device starting...");
+  Serial0.println("device starting...");
 
   // fake args, it will be ignored by the USB stack, default baudrate is 12Mbps
-  USBSerial.begin(12000000);
+  USBSerial.begin(BAUD_RATE);
   USB.begin();
   USBSerial.println("ESP32-S3 USB CDC DONE!");
 
-  led.init();
+  // led.init();
   filesCtrl.init();
 
-  bodyCtrl.init();
-  bodyCtrl.jointMiddle();
+  // bodyCtrl.init();
+  // bodyCtrl.jointMiddle();
 
   screenCtrl.init();
   screenCtrl.displayText("LYgion", 0, 0, 2);
@@ -51,7 +53,6 @@ void setup() {
     filesCtrl.createMission("boot", "this is the boot mission.");
   } 
   runMission("boot", 0, 1);
-  // bodyCtrl.stand(); // need to check T105 first
 }
 
 bool runStep(String missionName, int step) {
@@ -164,12 +165,12 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
 
 
 
-	case CMD_SET_COLOR: 
-                        led.setColor(jsonCmdInput["set"][0], 
-                                     jsonCmdInput["set"][1], 
-                                     jsonCmdInput["set"][2], 
-                                     jsonCmdInput["set"][3]);
-												break;
+	// case CMD_SET_COLOR: 
+  //                       led.setColor(jsonCmdInput["set"][0], 
+  //                                    jsonCmdInput["set"][1], 
+  //                                    jsonCmdInput["set"][2], 
+  //                                    jsonCmdInput["set"][3]);
+	// 											break;
   case CMD_DISPLAY_SINGLE:
                         screenCtrl.changeSingleLine(jsonCmdInput["line"], 
                                                     jsonCmdInput["text"], 
@@ -270,12 +271,11 @@ void tud_cdc_rx_cb(uint8_t itf) {
   }
 }
 
-
 void serialCtrl() {
   static String receivedData;
 
-  while (Serial.available() > 0) {
-    char receivedChar = Serial.read();
+  while (Serial0.available() > 0) {
+    char receivedChar = Serial0.read();
     receivedData += receivedChar;
 
     // Detect the end of the JSON string based on a specific termination character
@@ -284,14 +284,14 @@ void serialCtrl() {
       DeserializationError err = deserializeJson(jsonCmdReceive, receivedData);
       if (err == DeserializationError::Ok) {
   			if (InfoPrint == 1) {
-  				Serial.print(receivedData);
+  				Serial0.print(receivedData);
   			}
         jsonCmdReceiveHandler(jsonCmdReceive);
       } else {
         // Handle JSON parsing error here
         if (InfoPrint == 1) {
-          Serial.print("JSON parsing error: ");
-          Serial.println(err.c_str());
+          Serial0.print("JSON parsing error: ");
+          Serial0.println(err.c_str());
         }
       }
       // Reset the receivedData for the next JSON string
@@ -302,11 +302,13 @@ void serialCtrl() {
 
 
 void loop() {
-  unsigned long startTime = micros(); // Record the start time in microseconds
+  // unsigned long startTime = micros(); // Record the start time in microseconds
   serialCtrl();
-  unsigned long endTime = micros(); // Record the end time in microseconds
-  USBSerial.print("serialCtrl execution time: ");
-  USBSerial.print(endTime - startTime);
-  USBSerial.println(" µs");
+  // unsigned long endTime = micros(); // Record the end time in microseconds
+  // USBSerial.print("serialCtrl execution time: ");
+  // USBSerial.print(endTime - startTime);
+  // USBSerial.println(" µs");
+
+  // delay(1000);
 }
 
