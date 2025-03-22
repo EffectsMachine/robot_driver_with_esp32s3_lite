@@ -338,7 +338,7 @@ bool FilesCtrl::checkReplaceStep(String missionName, String jsonCmd) {
         return false;
     }
 
-    if (!cmdJson.containsKey("T")) {
+    if (!cmdJson["T"].is<int>()) {
         Serial.println("Invalid jsonCmd: missing 'T' field.");
         Serial0.println("Invalid jsonCmd: missing 'T' field.");
         return false;
