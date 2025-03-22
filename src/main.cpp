@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <Wire.h>
+#include <nvs_flash.h>
 #include "USB.h"
 #include "USBCDC.h"
 #include "tusb.h"
@@ -13,6 +14,7 @@
 #include "BodyCtrl.h"
 #include "FilesCtrl.h"
 #include "ScreenCtrl.h"
+#include "Wireless.h"
 
 JsonDocument jsonCmdReceive;
 JsonDocument jsonFeedback;
@@ -23,6 +25,8 @@ String outputString;
 BodyCtrl bodyCtrl;
 FilesCtrl filesCtrl;
 ScreenCtrl screenCtrl;
+Wireless wireless;
+bool newCmdReceived = false;
 
 int jointsZeroPos[12];
 int jointsCurrentPos[12];
@@ -233,8 +237,69 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   
 
 
-  case ESP32_REBOOT:
+  case CMD_SET_WIFI_MODE:
+                        if (jsonCmdInput["mode"] == 0) {
+                          wireless.setWifiMode(jsonCmdInput["mode"], "", "", 0, "", "");
+                          jsonFeedback.clear();
+                          jsonFeedback["T"] = CMD_SET_WIFI_MODE;
+                          jsonFeedback["mode"] = 0;
+                          serializeJson(jsonFeedback, outputString);
+                          filesCtrl.checkReplaceStep("boot", outputString);
+                        } else if (jsonCmdInput["mode"] == 1) {
+                          if (wireless.setWifiMode(jsonCmdInput["mode"], 
+                                                   jsonCmdInput["ap_ssid"], 
+                                                   jsonCmdInput["ap_password"], 
+                                                   jsonCmdInput["channel"], 
+                                                   jsonCmdInput["sta_ssid"], 
+                                                   jsonCmdInput["sta_password"])) {
+                              jsonFeedback.clear();
+                              jsonFeedback["T"] = CMD_SET_WIFI_MODE;
+                              jsonFeedback["mode"] = 1;
+                              jsonFeedback["ap_ssid"] = jsonCmdInput["ap_ssid"];
+                              jsonFeedback["ap_password"] = jsonCmdInput["ap_password"];
+                              jsonFeedback["channel"] = jsonCmdInput["channel"];
+                              jsonFeedback["sta_ssid"] = jsonCmdInput["sta_ssid"];
+                              jsonFeedback["sta_password"] = jsonCmdInput["sta_password"];
+                              serializeJson(jsonFeedback, outputString);
+                              filesCtrl.checkReplaceStep("boot", outputString);
+                          } else {
+                              jsonFeedback.clear();
+                              jsonFeedback["T"] = CMD_SET_WIFI_MODE;
+                              jsonFeedback["mode"] = 1;
+                              jsonFeedback["ap_ssid"] = jsonCmdInput["ap_ssid"];
+                              jsonFeedback["ap_password"] = jsonCmdInput["ap_password"];
+                              jsonFeedback["channel"] = jsonCmdInput["channel"];
+                              jsonFeedback["sta_ssid"] = "";
+                              jsonFeedback["sta_password"] = "";
+                              serializeJson(jsonFeedback, outputString);
+                              filesCtrl.checkReplaceStep("boot", outputString);
+                          }
+                        }
+                        break;
+  case CMD_WIFI_INFO:
+                        outputString = filesCtrl.findCmdByType("boot", CMD_SET_WIFI_MODE);
+                        Serial.println(outputString);
+                        Serial0.println(outputString);
+                        break;
+  case CMD_GET_AP_IP:
+                        outputString = wireless.getAPIP();
+                        Serial.println(outputString);
+                        Serial0.println(outputString);
+                        break;
+  case CMD_GET_STA_IP:
+                        outputString = wireless.getSTAIP();
+                        Serial.println(outputString);
+                        Serial0.println(outputString);
+                        break;
+
+
+  case CMD_ESP32_REBOOT:
                         ESP.restart();
+                        break;
+  case CMD_CLEAR_NVS:
+                        nvs_flash_erase();
+                        delay(1000);
+                        nvs_flash_init();
                         break;
   }
 }
@@ -242,7 +307,7 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
 // USB CDC receive callback
 void tud_cdc_rx_cb(uint8_t itf) {
   static String receivedData;
-  char buffer[64];
+  char buffer[256];
   uint32_t count = tud_cdc_read(buffer, sizeof(buffer));
 
   for (uint32_t i = 0; i < count; i++) {
@@ -257,7 +322,7 @@ void tud_cdc_rx_cb(uint8_t itf) {
         if (InfoPrint == 1) {
           USBSerial.print(receivedData);
         }
-        jsonCmdReceiveHandler(jsonCmdReceive);
+        newCmdReceived = true;
       } else {
         // Handle JSON parsing error here
         if (InfoPrint == 1) {
@@ -310,5 +375,11 @@ void loop() {
   // USBSerial.println(" µs");
 
   // delay(1000);
+
+  if (newCmdReceived) {
+    jsonCmdReceiveHandler(jsonCmdReceive);
+    newCmdReceived = false;
+    jsonCmdReceive.clear();
+  }
 }
 

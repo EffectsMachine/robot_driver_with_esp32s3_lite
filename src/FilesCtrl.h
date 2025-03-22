@@ -23,6 +23,8 @@ public:
     String readStep(String missionName, int stepNum);
     void deleteMission(String missionName);
     bool checkMission(String missionName);
+    bool checkReplaceStep(String missionName, String jsonCmd);
+    String findCmdByType(String missionName, int cmdType);
 };
 
 #endif // FILES_CTRL_H

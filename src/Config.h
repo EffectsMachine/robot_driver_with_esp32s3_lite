@@ -128,19 +128,29 @@ static int timeOffset = 50;
 
 
 // --- Wireless Configuration ---
-// 0 -> no wifi, 1 -> Auto, 2 -> AP, 3 -> STA
+// 0 -> none, 1[default] -> AP+STA
+// {"T":400,"mode":1,"ap_ssid":"LYgion","ap_password":"12345678","channel":1,"sta_ssid":"ssid","sta_password":"password"}
 #define CMD_SET_WIFI_MODE 400
-#define CMD_SET_AP 401
-#define CMD_SET_STA 402
-#define CMD_WIFI_INFO 403
-#define CMD_WIFI_STOP 404
+// {"T":401}
+#define CMD_WIFI_INFO 401
+// {"T":402}
+#define CMD_GET_AP_IP 402
+// {"T":403}
+#define CMD_GET_STA_IP 403
 
-// 0 -> no esp-now, 1 -> start esp-now
+// 0 -> no esp-now receive, 1 -> start esp-now[default]
 #define CMD_SET_ESP_NOW_MODE 410
+#define CMD_GET_MAC 411
+#define CMD_ESP_NOW_SET_MAC 412
+#define CMD_ESP_NOW_SEND 413
 
 
 
 // --- System Configuration ---
 // the time for ESP32 to reboot after receiving a reboot command
 // {"T":600}
-#define ESP32_REBOOT 600
+#define CMD_ESP32_REBOOT 600
+// clear nvs
+// {"T":601}
+#define CMD_CLEAR_NVS 601
+#define CMD_RESET_BOOT_MISSION 602
