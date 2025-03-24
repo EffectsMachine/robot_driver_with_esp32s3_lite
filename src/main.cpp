@@ -48,6 +48,26 @@ void setup() {
   Serial.println("device starting...");
   Serial0.println("device starting...");
 
+  // buzzer
+  pinMode(BUZZER_PIN, OUTPUT);
+  tone(BUZZER_PIN, 1000);
+  delay(15);
+  noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(25);
+  tone(BUZZER_PIN, 3000);
+  delay(15);
+  noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(25);
+  tone(BUZZER_PIN, 5000);
+  delay(15);
+  noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(25);
+  noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN, HIGH);
+
   // fake args, it will be ignored by the USB stack, default baudrate is 12Mbps
   USBSerial.begin(BAUD_RATE);
   USB.begin();
@@ -403,7 +423,6 @@ void loop() {
   // USBSerial.println(" µs");
 
   if (buttonPressFlag) {
-    buttonPressFlag = false;
     switch (buttonPress) {
       case BUTTON_UP:
         Serial0.println("UP");
@@ -421,6 +440,7 @@ void loop() {
         Serial0.println("OK");
         break;
     }
+    buttonPressFlag = false;
   }
 
   if (newCmdReceived) {
