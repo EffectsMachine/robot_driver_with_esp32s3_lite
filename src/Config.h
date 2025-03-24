@@ -21,6 +21,10 @@
 #define IIC_SDA 6
 #define IIC_SCL 7
 
+// Buzzer
+#define BUZZER_PIN 21
+
+
 
 // --- Debug Configuration ---
 // 1: print debug info

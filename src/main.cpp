@@ -15,6 +15,7 @@
 #include "FilesCtrl.h"
 #include "ScreenCtrl.h"
 #include "Wireless.h"
+#include "button.h"
 
 JsonDocument jsonCmdReceive;
 JsonDocument jsonFeedback;
@@ -33,15 +34,25 @@ int jointsCurrentPos[12];
 void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput);
 void runMission(String missionName, int intervalTime, int loopTimes);
 
+int buttonPress = 0;
+bool buttonPressFlag = false;
+
+void onButtonPress(Button button) {
+  buttonPress = button;
+  buttonPressFlag = true;
+}
+
 void setup() {
   Serial0.begin(BAUD_RATE);
   Wire.begin(IIC_SDA, IIC_SCL);
+  Serial.println("device starting...");
   Serial0.println("device starting...");
 
   // fake args, it will be ignored by the USB stack, default baudrate is 12Mbps
   USBSerial.begin(BAUD_RATE);
   USB.begin();
   USBSerial.println("ESP32-S3 USB CDC DONE!");
+  Serial0.println("ESP32-S3 USB CDC DONE!");
 
   // led.init();
   filesCtrl.init();
@@ -53,12 +64,19 @@ void setup() {
   screenCtrl.displayText("LYgion", 0, 0, 2);
   screenCtrl.displayText("Robotics", 0, 16, 2);
 
+  initButtons();
+  registerButtonCallback(onButtonPress);
+  Serial.println("Buttons initialized.");
+  Serial0.println("Buttons initialized.");
+
   if(!filesCtrl.checkMission("boot")) {
     filesCtrl.createMission("boot", "this is the boot mission.");
     filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
   } 
   runMission("boot", 0, 1);
 }
+
+
 
 bool runStep(String missionName, int step) {
   outputString = filesCtrl.readStep(missionName, step);
@@ -72,6 +90,8 @@ bool runStep(String missionName, int step) {
     return false;
   }
 }
+
+
 
 void runMission(String missionName, int intervalTime, int loopTimes) {
   intervalTime = intervalTime - timeOffset;
@@ -101,6 +121,8 @@ void runMission(String missionName, int intervalTime, int loopTimes) {
     }
   }
 }
+
+
 
 void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   int cmdType;
@@ -305,6 +327,8 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   }
 }
 
+
+
 // USB CDC receive callback
 void tud_cdc_rx_cb(uint8_t itf) {
   static String receivedData;
@@ -337,6 +361,8 @@ void tud_cdc_rx_cb(uint8_t itf) {
   }
 }
 
+
+
 void serialCtrl() {
   static String receivedData;
 
@@ -367,6 +393,7 @@ void serialCtrl() {
 }
 
 
+
 void loop() {
   // unsigned long startTime = micros(); // Record the start time in microseconds
   serialCtrl();
@@ -375,7 +402,26 @@ void loop() {
   // USBSerial.print(endTime - startTime);
   // USBSerial.println(" µs");
 
-  // delay(1000);
+  if (buttonPressFlag) {
+    buttonPressFlag = false;
+    switch (buttonPress) {
+      case BUTTON_UP:
+        Serial0.println("UP");
+        break;
+      case BUTTON_DOWN:
+        Serial0.println("DOWN");
+        break;
+      case BUTTON_LEFT:
+        Serial0.println("LEFT");
+        break;
+      case BUTTON_RIGHT:
+        Serial0.println("RIGHT");
+        break;
+      case BUTTON_OK:
+        Serial0.println("OK");
+        break;
+    }
+  }
 
   if (newCmdReceived) {
     jsonCmdReceiveHandler(jsonCmdReceive);
