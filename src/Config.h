@@ -92,6 +92,9 @@ static int timeOffset = 50;
 // ctrl oled display a frame
 // {"T":204,"l1":"Hello, world!","l2":"Hello, world!","l3":"Hello, world!","l4":"Hello, world!"}
 #define CMD_DISPLAY_FRAME 204
+// buzzer ctrl
+// {"T":205,"freq":1000,"duration":1000}
+#define CMD_BUZZER_CTRL 205
 
 
 
@@ -142,12 +145,19 @@ static int timeOffset = 50;
 // {"T":403}
 #define CMD_GET_STA_IP 403
 
+// {"T":410,"longrange":0}
+#define CMD_INIT_ESP_NOW 410
 // 0 -> no esp-now receive, 1 -> start esp-now[default]
-#define CMD_SET_ESP_NOW_MODE 410
-#define CMD_GET_MAC 411
-#define CMD_ESP_NOW_SET_MAC 412
-#define CMD_ESP_NOW_SEND 413
-
+// {"T":411,"mode":1}
+#define CMD_SET_ESP_NOW_MODE 411
+// {"T":412}
+#define CMD_GET_MAC 412
+// {"T":413,"mac":[FF,FF,FF,FF,FF,FF]}
+#define CMD_ESP_NOW_SET_MAC 413
+// {"T":414,"mac":[FF,FF,FF,FF,FF,FF],"data":"{\"T\":201,\"set\":[0,9,0,0]}"}
+#define CMD_ESP_NOW_SEND 414
+// {"T":415,"mac":[FF,FF,FF,FF,FF,FF]}
+#define CMD_ADD_MAC 415
 
 
 // --- System Configuration ---

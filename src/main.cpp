@@ -28,6 +28,8 @@ FilesCtrl filesCtrl;
 ScreenCtrl screenCtrl;
 Wireless wireless;
 bool newCmdReceived = false;
+bool breakloop = false;
+unsigned long tuneStartTime;
 
 int jointsZeroPos[12];
 int jointsCurrentPos[12];
@@ -89,11 +91,16 @@ void setup() {
   Serial.println("Buttons initialized.");
   Serial0.println("Buttons initialized.");
 
+
+
   if(!filesCtrl.checkMission("boot")) {
     filesCtrl.createMission("boot", "this is the boot mission.");
     filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
   } 
   runMission("boot", 0, 1);
+
+  wireless.espnowInit(false);
+  wireless.setJsonCommandCallback(jsonCmdReceiveHandler);
 }
 
 
@@ -146,6 +153,7 @@ void runMission(String missionName, int intervalTime, int loopTimes) {
 
 void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   int cmdType;
+  breakloop = true;
   cmdType = jsonCmdInput["T"].as<int>();
   switch(cmdType){
 	case CMD_JOINT_MIDDLE:
@@ -218,6 +226,21 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   //                                    jsonCmdInput["set"][2], 
   //                                    jsonCmdInput["set"][3]);
 	// 											break;
+  case CMD_BUZZER_CTRL:
+                        tone(BUZZER_PIN, jsonCmdInput["freq"]);
+                        breakloop = false;
+                        tuneStartTime = millis();
+                        while (millis() - tuneStartTime < jsonCmdInput["duration"]) {
+                          if (breakloop) {
+                            noTone(BUZZER_PIN);
+                            digitalWrite(BUZZER_PIN, HIGH);
+                            break;
+                          }
+                        }
+                        noTone(BUZZER_PIN);
+                        digitalWrite(BUZZER_PIN, HIGH);
+                        break;
+
   case CMD_DISPLAY_SINGLE:
                         screenCtrl.changeSingleLine(jsonCmdInput["line"], 
                                                     jsonCmdInput["text"], 
@@ -336,6 +359,30 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         break;
 
 
+
+  case CMD_INIT_ESP_NOW:
+                        wireless.espnowInit(jsonCmdInput["longrange"]);
+                        break;
+  case CMD_SET_ESP_NOW_MODE:
+                        wireless.setEspNowMode(jsonCmdInput["mode"]);
+                        break;
+  case CMD_GET_MAC:
+                        outputString = wireless.macToString(wireless.getMac());
+                        Serial.println(outputString);
+                        Serial0.println(outputString);
+                        break;
+  // case CMD_ESP_NOW_SET_MAC:
+  //                       wireless.setEspNowMac(jsonCmdInput["mac"]);
+  //                       break;
+  // case CMD_ESP_NOW_SEND:
+  //                       wireless.sendEspNow(jsonCmdInput["mac"], jsonCmdInput["data"]);
+  //                       break;
+  // case CMD_ADD_MAC:
+  //                       wireless.addMacToPeer(jsonCmdInput["mac"]);
+  //                       break;
+
+
+
   case CMD_ESP32_REBOOT:
                         ESP.restart();
                         break;
@@ -421,6 +468,11 @@ void loop() {
   // USBSerial.print("serialCtrl execution time: ");
   // USBSerial.print(endTime - startTime);
   // USBSerial.println(" µs");
+  
+  uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+  const char* message = "{\"T\":401}";
+  wireless.sendEspNow(broadcastAddress, message);
+  delay(1000);
 
   if (buttonPressFlag) {
     switch (buttonPress) {

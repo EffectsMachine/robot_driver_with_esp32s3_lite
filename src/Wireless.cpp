@@ -1,12 +1,32 @@
 #include "Wireless.h"
 
+JsonCommandCallback jsonCommandCallback = nullptr;
+
 #define WIFI_MODE_NONE 0
 #define WIFI_MODE_AP_STA 1
+
+// JsonCommandCallback jsonCommandCallback = nullptr;
+// JsonDocument jsonCmdReceiveEspnow;
+// struct_message espNowMessage;
+// struct_message espNowMegsRecv;
+
+
+// JsonCommandCallback jsonCommandCallback;
+JsonDocument jsonCmdReceiveEspnow;
+
+
+typedef struct struct_message {
+    char message[250];
+  } struct_message;
+struct_message espNowMessage;
+struct_message espNowMegsRecv;
 
 int wifiMode = 1;
 int maxClients = 1;
 bool statusAP = false;
 bool statusSTA = false;
+
+bool espnowMode = true;
 
 bool Wireless::setAP(String ssid, String password, int wifiChannel) {
     if (wifiMode == WIFI_MODE_NONE) {
@@ -121,5 +141,128 @@ String Wireless::getSTAIP() {
         return WiFi.localIP().toString();
     } else {
         return "";
+    }
+}
+
+
+
+// void OnDataRecv(const esp_now_peer_info_t *info, const unsigned char* incomingData, int len) {
+//     DeserializationError err = deserializeJson(jsonCmdReceiveEspnow, incomingData);
+//     if (err == DeserializationError::Ok) {
+//         if (jsonCommandCallback != nullptr) {
+//             jsonCommandCallback(jsonCmdReceiveEspnow);
+//         }
+//     } else {
+//     }
+// }
+void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
+    memcpy(&espNowMegsRecv, data, sizeof(espNowMegsRecv));
+
+    Serial.print("Bytes received: "); Serial.println(data_len);
+    Serial0.print("Bytes received: "); Serial0.println(data_len);
+
+    DeserializationError err = deserializeJson(jsonCmdReceiveEspnow, espNowMegsRecv.message);
+    if (err == DeserializationError::Ok && jsonCommandCallback != nullptr) {
+        jsonCommandCallback(jsonCmdReceiveEspnow);
+    }
+}
+    
+
+void Wireless::espnowInit(bool longRange) {
+    if (longRange) {
+        if (esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_LR) == ESP_OK) {
+            Serial.println("Long Range Mode enabled for STA");
+        } else {
+            Serial.println("Failed to enable Long Range Mode for STA");
+        }
+
+        if (esp_wifi_set_protocol(WIFI_IF_AP, WIFI_PROTOCOL_LR) == ESP_OK) {
+            Serial.println("Long Range Mode enabled for AP");
+        } else {
+            Serial.println("Failed to enable Long Range Mode for AP");
+        }
+    }
+
+    if (esp_now_init() != ESP_OK) {
+        Serial.println("Error initializing ESP-NOW");
+        Serial0.println("Error initializing ESP-NOW");
+        return;
+    }
+    esp_now_register_recv_cb(OnDataRecv);
+    // esp_now_register_recv_cb([](const uint8_t *mac, const uint8_t *incomingData, int len) {
+    //     esp_now_peer_info_t peerInfo;
+    //     memcpy(peerInfo.peer_addr, mac, 6);
+    //     OnDataRecv(&peerInfo, incomingData, len);
+    // });
+}
+
+bool Wireless::setEspNowMode(int mode) {
+    if (mode == 0) {
+        espnowMode = false;
+        return true;
+    } else if (mode == 1) {
+        espnowMode = true;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+String Wireless::macToString(uint8_t mac[6]) {
+    char macStr[18]; // 6 pairs of 2 characters + null terminator
+    snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X", 
+             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    return String(macStr);
+}
+
+uint8_t* Wireless::getMac() {
+    static uint8_t mac[6];
+    if (esp_efuse_mac_get_default(mac) == ESP_OK) {
+        return mac;
+    } else {
+        Serial.println("Failed to get MAC address");
+        Serial0.println("Failed to get MAC address");
+        return nullptr;
+    }
+}
+
+bool Wireless::setEspNowMac(uint8_t* mac) {
+    esp_now_peer_info_t peerInfo;
+    memcpy(peerInfo.peer_addr, mac, 6);
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        Serial.println("Failed to add peer");
+        Serial0.println("Failed to add peer");
+        return false;
+    } else {
+        return true;
+    }
+}
+
+bool Wireless::sendEspNow(uint8_t* mac, String data) {
+    if (esp_now_send(mac, (uint8_t*)data.c_str(), data.length()) != ESP_OK) {
+        Serial.println("Failed to send data");
+        Serial0.println("Failed to send data");
+        return false;
+    } else {
+        Serial.println("Data sent successfully");
+        Serial0.println("Data sent successfully");
+        return true;
+    }
+}
+
+void Wireless::setJsonCommandCallback(JsonCommandCallback callback) {
+    jsonCommandCallback = callback;
+}
+
+void Wireless::addMacToPeer(uint8_t* mac) {
+    esp_now_peer_info_t peerInfo;
+    memcpy(peerInfo.peer_addr, mac, 6);
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        Serial.println("Failed to add peer");
+        Serial0.println("Failed to add peer");
     }
 }
