@@ -20,6 +20,7 @@ typedef struct struct_message {
   } struct_message;
 struct_message espNowMessage;
 struct_message espNowMegsRecv;
+esp_now_peer_info_t peerInfo;
 
 int wifiMode = 1;
 int maxClients = 1;
@@ -226,22 +227,37 @@ uint8_t* Wireless::getMac() {
     }
 }
 
-bool Wireless::setEspNowMac(uint8_t* mac) {
-    esp_now_peer_info_t peerInfo;
-    memcpy(peerInfo.peer_addr, mac, 6);
-    peerInfo.channel = 0;
-    peerInfo.encrypt = false;
-    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-        Serial.println("Failed to add peer");
-        Serial0.println("Failed to add peer");
+void Wireless::macStringToByteArray(const String& macString, uint8_t* byteArray) {
+    for (int i = 0; i < 6; i++) {
+      byteArray[i] = strtol(macString.substring(i * 3, i * 3 + 2).c_str(), NULL, 16);
+    }
+    return;
+}
+
+bool Wireless::sendEspNow(String macInput, String data) {
+    if (macInput.length() != 17) {
+        Serial0.println("invalid MAC address format.");
+        return false;
+    }
+    uint8_t macArray[6];
+    macStringToByteArray(macInput, macArray);
+
+    if (esp_now_send(macArray, (uint8_t*)data.c_str(), data.length()) != ESP_OK) {
+        Serial.println("Failed to send data");
+        Serial0.println("Failed to send data");
         return false;
     } else {
+        Serial.println("Data sent successfully");
+        Serial0.println("Data sent successfully");
         return true;
     }
 }
 
-bool Wireless::sendEspNow(uint8_t* mac, String data) {
-    if (esp_now_send(mac, (uint8_t*)data.c_str(), data.length()) != ESP_OK) {
+bool Wireless::sendEspNowJson(uint8_t mac[6], const JsonDocument& jsonCmdInput) {
+    char outputString[250];
+    serializeJson(jsonCmdInput, outputString);
+
+    if (esp_now_send(mac, (uint8_t*)outputString, strlen(outputString)) != ESP_OK) {
         Serial.println("Failed to send data");
         Serial0.println("Failed to send data");
         return false;
@@ -256,13 +272,35 @@ void Wireless::setJsonCommandCallback(JsonCommandCallback callback) {
     jsonCommandCallback = callback;
 }
 
-void Wireless::addMacToPeer(uint8_t* mac) {
-    esp_now_peer_info_t peerInfo;
-    memcpy(peerInfo.peer_addr, mac, 6);
-    peerInfo.channel = 0;
-    peerInfo.encrypt = false;
+void Wireless::addMacToPeerString(String macInput) {
+    if (macInput.length() != 17) {
+        Serial0.println("invalid MAC address format.");
+        return;
+    }
+    uint8_t macArray[6];
+    macStringToByteArray(macInput, macArray);
+
+    // esp_now_peer_info_t peerInfo;
+    memcpy(peerInfo.peer_addr, macArray, 6);
     if (esp_now_add_peer(&peerInfo) != ESP_OK) {
         Serial.println("Failed to add peer");
         Serial0.println("Failed to add peer");
     }
+    Serial.print("Peer added successfully: ");
+    Serial.println(macInput);
+    Serial0.print("Peer added successfully: ");
+    Serial0.println(macInput);
+}
+
+void Wireless::addMacToPeer(uint8_t mac[6]) {
+    // esp_now_peer_info_t peerInfo;
+    memcpy(peerInfo.peer_addr, mac, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        Serial.println("Failed to add peer");
+        Serial0.println("Failed to add peer");
+    }
+    Serial.print("Peer added successfully: ");
+    Serial.println(macToString(mac));
+    Serial0.print("Peer added successfully: ");
+    Serial0.println(macToString(mac));
 }

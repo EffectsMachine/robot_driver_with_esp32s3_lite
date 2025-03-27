@@ -9,11 +9,6 @@
 
 typedef void (*JsonCommandCallback)(const JsonDocument& jsonCmdInput);
 
-  
-
-//   esp_now_peer_info_t peerInfo;
-
-
 class Wireless{
     public:
         bool setAP(String ssid, String password, int wifiChannel);
@@ -26,13 +21,14 @@ class Wireless{
 
         void espnowInit(bool longRange);
         bool setEspNowMode(int mode);
+        void macStringToByteArray(const String& macString, uint8_t* byteArray);
         String macToString(uint8_t mac[6]);
         uint8_t* getMac();
-        bool setEspNowMac(uint8_t* mac);
-        bool sendEspNow(uint8_t* mac, String data);
+        bool sendEspNow(String macInput, String data);
+        bool sendEspNowJson(uint8_t mac[6], const JsonDocument& jsonCmdInput);
         void setJsonCommandCallback(JsonCommandCallback callback);
-        void addMacToPeer(uint8_t* mac);
-        // bool OnDataRecv(const esp_now_peer_info_t *info, const unsigned char* incomingData, int len);
+        void addMacToPeerString(String macInput);
+        void addMacToPeer(uint8_t mac[6]);
 };
 
 #endif

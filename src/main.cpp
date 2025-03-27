@@ -38,10 +38,16 @@ void runMission(String missionName, int intervalTime, int loopTimes);
 
 int buttonPress = 0;
 bool buttonPressFlag = false;
+bool buttonState = false;
+
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 void onButtonPress(Button button) {
   buttonPress = button;
   buttonPressFlag = true;
+  if (!digitalRead(buttonPress)){
+    buttonState = false;
+  }
 }
 
 void setup() {
@@ -99,8 +105,18 @@ void setup() {
   } 
   runMission("boot", 0, 1);
 
+  // esp-now init
   wireless.espnowInit(false);
+  // wireless.espnowInit(true);
   wireless.setJsonCommandCallback(jsonCmdReceiveHandler);
+
+  wireless.addMacToPeer(broadcastAddress);  
+  jsonFeedback.clear();
+  jsonFeedback["T"] = CMD_DISPLAY_SINGLE;
+  jsonFeedback["line"] = 1;
+  jsonFeedback["text"] = "Lygion Robotics";
+  jsonFeedback["update"] = 1;
+  wireless.sendEspNowJson(broadcastAddress, jsonFeedback);
 }
 
 
@@ -371,15 +387,12 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         Serial.println(outputString);
                         Serial0.println(outputString);
                         break;
-  // case CMD_ESP_NOW_SET_MAC:
-  //                       wireless.setEspNowMac(jsonCmdInput["mac"]);
-  //                       break;
-  // case CMD_ESP_NOW_SEND:
-  //                       wireless.sendEspNow(jsonCmdInput["mac"], jsonCmdInput["data"]);
-  //                       break;
-  // case CMD_ADD_MAC:
-  //                       wireless.addMacToPeer(jsonCmdInput["mac"]);
-  //                       break;
+  case CMD_ESP_NOW_SEND:
+                        wireless.sendEspNow(jsonCmdInput["mac"], jsonCmdInput["data"]);
+                        break;
+  case CMD_ADD_MAC:
+                        wireless.addMacToPeerString(jsonCmdInput["mac"]);
+                        break;
 
 
 
@@ -469,31 +482,48 @@ void loop() {
   // USBSerial.print(endTime - startTime);
   // USBSerial.println(" µs");
   
-  uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-  const char* message = "{\"T\":401}";
-  wireless.sendEspNow(broadcastAddress, message);
-  delay(1000);
+  // uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+  // const char* message = "{\"T\":401}";
+  // wireless.sendEspNow(broadcastAddress, message);
+  // delay(1000);
 
-  if (buttonPressFlag) {
+  if (buttonPressFlag && !buttonState) {
     switch (buttonPress) {
       case BUTTON_UP:
         Serial0.println("UP");
+        buttonState = true;
+        wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+          "{\"T\":202,\"line\":1,\"text\":\"UP\",\"update\":3}");
         break;
       case BUTTON_DOWN:
         Serial0.println("DOWN");
+        buttonState = true;
+        wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+          "{\"T\":202,\"line\":1,\"text\":\"DOWN\",\"update\":3}");
         break;
       case BUTTON_LEFT:
         Serial0.println("LEFT");
+        buttonState = true;
+        wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+          "{\"T\":202,\"line\":1,\"text\":\"LEFT\",\"update\":3}");
         break;
       case BUTTON_RIGHT:
         Serial0.println("RIGHT");
+        buttonState = true;
+        wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+          "{\"T\":202,\"line\":1,\"text\":\"RIGHT\",\"update\":3}");
         break;
       case BUTTON_OK:
         Serial0.println("OK");
+        buttonState = true;
+        wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+          "{\"T\":202,\"line\":1,\"text\":\"OK\",\"update\":3}");
         break;
     }
     buttonPressFlag = false;
   }
+
+
 
   if (newCmdReceived) {
     jsonCmdReceiveHandler(jsonCmdReceive);

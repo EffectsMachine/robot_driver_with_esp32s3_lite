@@ -11,7 +11,7 @@ void IRAM_ATTR handleButtonInterrupt(Button button) {
     unsigned long interruptTime = millis();
     // Debouncing, 200ms
         currentButton = button;
-        if (interruptTime - lastInterruptTime > 600) { // Debouncing, 200ms
+        if (interruptTime - lastInterruptTime > 20) { // Debouncing, 200ms
             lastInterruptTime = interruptTime;
         } else {
             return; // Ignore the interrupt if it's within the debounce period

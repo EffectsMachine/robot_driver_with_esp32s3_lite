@@ -84,7 +84,7 @@ static int timeOffset = 50;
 #define CMD_SET_COLOR 201
 // ctrl oled display a single line
 // updateFlag = 0 -> no update, updateFlag = 1 -> update
-// {"T":202,"line":1,"text":"Hello, world!","update":0}
+// {"T":202,"line":1,"text":"Hello, world!","update":1}
 #define CMD_DISPLAY_SINGLE 202
 // oled display update
 // {"T":203}
@@ -95,6 +95,10 @@ static int timeOffset = 50;
 // buzzer ctrl
 // {"T":205,"freq":1000,"duration":1000}
 #define CMD_BUZZER_CTRL 205
+
+// buttons
+// {"T":206,"b":1}
+
 
 
 
@@ -152,12 +156,10 @@ static int timeOffset = 50;
 #define CMD_SET_ESP_NOW_MODE 411
 // {"T":412}
 #define CMD_GET_MAC 412
-// {"T":413,"mac":[FF,FF,FF,FF,FF,FF]}
-#define CMD_ESP_NOW_SET_MAC 413
-// {"T":414,"mac":[FF,FF,FF,FF,FF,FF],"data":"{\"T\":201,\"set\":[0,9,0,0]}"}
-#define CMD_ESP_NOW_SEND 414
-// {"T":415,"mac":[FF,FF,FF,FF,FF,FF]}
-#define CMD_ADD_MAC 415
+// {"T":413,"mac":"FF,FF,FF,FF,FF,FF","data":"{\"T\":205,\"freq\":500,\"duration\":30}"}
+#define CMD_ESP_NOW_SEND 413
+// {"T":414,"mac":"FF:FF:FF:FF:FF:FF"}
+#define CMD_ADD_MAC 414
 
 
 // --- System Configuration ---
