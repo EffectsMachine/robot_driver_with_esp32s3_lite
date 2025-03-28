@@ -40,7 +40,319 @@ int buttonPress = 0;
 bool buttonPressFlag = false;
 bool buttonState = false;
 
-uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+
+
+
+
+
+
+
+const char* menu1[] = {"SC", "BaudRate", "SelectID", "Position", "changeID"};
+const char* menu2[] = {"ST/SM", "BaudRate", "SelectID", "Position", "SetMiddle", "changeID"};
+int menu12_1[] = {1000000, 115200, 230400, 460800, 921600, 2000000};
+uint8_t SelectID = 1;
+int Position = 512;
+uint8_t ChangeID = 1;
+uint8_t maxID = 254;
+
+
+
+
+
+int8_t menuLevel = 0;
+#define maxMenuLevel 3
+
+const char* menu_0[] = {"SC", "ST/M", "ENOW", "WIFI"};
+int8_t levelIndex_0 = 0;
+int8_t maxLevelIndex_0 = sizeof(menu_0) / sizeof(menu_0[0]);
+
+int8_t levelIndex_1 = 0;
+int8_t levelIndex_2 = 0;
+
+const char* menu_1_0[] = {"BR", "SID", "Pos", "CID"};
+int8_t maxLevelIndex_1_0 = sizeof(menu_1_0) / sizeof(menu_1_0[0]);
+
+int menu_2_1_0[] = {1000000, 115200, 230400, 460800, 921600, 2000000};
+
+const char* menu_1_1[] = {"BR", "SID", "Pos", "MID", "CID"};
+int8_t maxLevelIndex_1_1 = sizeof(menu_1_1) / sizeof(menu_1_1[0]);
+
+
+
+bool syncInteractionEspnow = true;
+
+void displayMenu() {
+  if (menuLevel == 0) {
+    switch (levelIndex_0) {
+      case 0:
+        screenCtrl.changeSingleLine(1, "o>" + String(menu_0[0]) + "< " + String(menu_0[1]) + " " + String(menu_0[2]) + " " + String(menu_0[3]), false);
+        screenCtrl.changeSingleLine(2, String(menu_1_0[0]) + " " +String(menu_1_0[1]) + " " + String(menu_1_0[2]) + " " + String(menu_1_0[3]), false);
+        screenCtrl.changeSingleLine(3, " ", false);
+        screenCtrl.changeSingleLine(4, " ", false);
+        screenCtrl.updateFrame();
+        break;
+      case 1:
+        screenCtrl.changeSingleLine(1, "o" + String(menu_0[0]) + " >" + String(menu_0[1]) + "< " + String(menu_0[2]) + " " + String(menu_0[3]), false);
+        screenCtrl.changeSingleLine(2, String(menu_1_1[0]) + " " + String(menu_1_1[1]) + " " + String(menu_1_1[2]) + " " + String(menu_1_1[3]) + " " + String(menu_1_1[4]), false);
+        screenCtrl.changeSingleLine(3, " ", false);
+        screenCtrl.changeSingleLine(4, " ", false);
+        screenCtrl.updateFrame();
+        break;
+      case 2:
+        screenCtrl.changeSingleLine(1, "o" + String(menu_0[0]) + " " + String(menu_0[1]) + " >" + String(menu_0[2]) + "< " + String(menu_0[3]), false);
+        screenCtrl.changeSingleLine(2, "ESP-NOW MODE: " + String(espnowMode), false);
+        screenCtrl.changeSingleLine(3, "Sync: " + String(syncInteractionEspnow), false);
+        screenCtrl.changeSingleLine(4, "MAC:" + wireless.macToString(wireless.getMac()), false);
+        screenCtrl.updateFrame();
+        break;
+      case 3:
+        screenCtrl.changeSingleLine(1, "o" + String(menu_0[0]) + " " + String(menu_0[1]) + " " + String(menu_0[2]) + " >" + String(menu_0[3]) + "<", false);
+        screenCtrl.changeSingleLine(2, "AP_SSID: Lygion", false);
+        screenCtrl.changeSingleLine(3, "AP_PSWD: 12345678", false);
+        screenCtrl.changeSingleLine(4, " ", false);
+        screenCtrl.updateFrame();
+        break;
+    }
+  } else {
+    switch (levelIndex_0) {
+      case 0:
+        screenCtrl.changeSingleLine(1, " >" + String(menu_0[0]) + "< " + String(menu_0[1]) + " " + String(menu_0[2]) + " " + String(menu_0[3]), true);
+        break;
+      case 1:
+        screenCtrl.changeSingleLine(1, String(menu_0[0]) + " >" + String(menu_0[1]) + "< " + String(menu_0[2]) + " " + String(menu_0[3]), true);
+        break;
+      case 2:
+        screenCtrl.changeSingleLine(1, String(menu_0[0]) + " " + String(menu_0[1]) + " >" + String(menu_0[2]) + "< " + String(menu_0[3]), true);
+        break;
+      case 3:
+        screenCtrl.changeSingleLine(1, String(menu_0[0]) + " " + String(menu_0[1]) + " " + String(menu_0[2]) + " >" + String(menu_0[3]) + "<", true);
+        break;
+    }
+  }
+  if (menuLevel == 1) {
+    if (levelIndex_0 == 0) {
+      switch (levelIndex_1) {
+        case 0:
+          screenCtrl.changeSingleLine(2, "o >" + String(menu_1_0[0]) + "< " + String(menu_1_0[1]) + " " + String(menu_1_0[2]) + " " + String(menu_1_0[3]), true);
+          screenCtrl.changeSingleLine(3, "BuadRate: " + String(menu_2_1_0[levelIndex_2]), true);
+          break;
+        case 1:
+          screenCtrl.changeSingleLine(2, "o " + String(menu_1_0[0]) + " >" + String(menu_1_0[1]) + "< " + String(menu_1_0[2]) + " " + String(menu_1_0[3]), true);
+          screenCtrl.changeSingleLine(3, "Select ID: " + String(SelectID), true);
+          break;
+        case 2:
+          screenCtrl.changeSingleLine(2, "o " + String(menu_1_0[0]) + " " + String(menu_1_0[1]) + " >" + String(menu_1_0[2]) + "< " + String(menu_1_0[3]), true);
+          screenCtrl.changeSingleLine(3, "Position: " + String(Position), true);
+          break;
+        case 3:
+          screenCtrl.changeSingleLine(2, "o " + String(menu_1_0[0]) + " " + String(menu_1_0[1]) + " " + String(menu_1_0[2]) + " >" + String(menu_1_0[3]) + "<", true);
+          screenCtrl.changeSingleLine(3, "Change ID: " + String(ChangeID), true);
+          break;
+      }
+    } else if (levelIndex_0 == 1) {
+      switch (levelIndex_1) {
+        case 0:
+          screenCtrl.changeSingleLine(2, "o>" + String(menu_1_1[0]) + "< " + String(menu_1_1[1]) + " " + String(menu_1_1[2]) + " " + String(menu_1_1[3]) + " " + String(menu_1_1[4]), true);
+          screenCtrl.changeSingleLine(3, "BuadRate: " + String(menu_2_1_0[levelIndex_2]), true);
+          break;
+        case 1:
+          screenCtrl.changeSingleLine(2, "o" + String(menu_1_1[0]) + " >" + String(menu_1_1[1]) + "< " + String(menu_1_1[2]) + " " + String(menu_1_1[3]) + " " + String(menu_1_1[4]), true);
+          screenCtrl.changeSingleLine(3, "Select ID: " + String(SelectID), true);
+          break;
+        case 2:
+          screenCtrl.changeSingleLine(2, "o" + String(menu_1_1[0]) + " " + String(menu_1_1[1]) + " >" + String(menu_1_1[2]) + "< " + String(menu_1_1[3]) + " " + String(menu_1_1[4]), true);
+          screenCtrl.changeSingleLine(3, "Position: " + String(Position), true);
+          break;
+        case 3:
+          screenCtrl.changeSingleLine(2, "o" + String(menu_1_1[0]) + " " + String(menu_1_1[1]) + " " + String(menu_1_1[2]) + " >" + String(menu_1_1[3]) + "< " + String(menu_1_1[4]), true);
+          screenCtrl.changeSingleLine(3, "Press [OK] set middle", true);
+          break;
+        case 4:
+          screenCtrl.changeSingleLine(2, "o" + String(menu_1_1[0]) + " " + String(menu_1_1[1]) + " " + String(menu_1_1[2]) + " " + String(menu_1_1[3]) + " >" + String(menu_1_1[4]) + "<", true);
+          screenCtrl.changeSingleLine(3, "Change ID: " + String(ChangeID), true);
+          break;
+      }
+    }
+  } else {
+    if (levelIndex_0 == 0) {
+      switch (levelIndex_1) {
+        case 0:
+          screenCtrl.changeSingleLine(2, " >" + String(menu_1_0[0]) + "< " + String(menu_1_0[1]) + " " + String(menu_1_0[2]) + " " + String(menu_1_0[3]), true);
+          break;
+        case 1:
+          screenCtrl.changeSingleLine(2, " " + String(menu_1_0[0]) + " >" + String(menu_1_0[1]) + "< " + String(menu_1_0[2]) + " " + String(menu_1_0[3]), true);
+          break;
+        case 2:
+          screenCtrl.changeSingleLine(2, " " + String(menu_1_0[0]) + " " + String(menu_1_0[1]) + " >" + String(menu_1_0[2]) + "< " + String(menu_1_0[3]), true);
+          break;
+        case 3:
+          screenCtrl.changeSingleLine(2, " " + String(menu_1_0[0]) + " " + String(menu_1_0[1]) + " " + String(menu_1_0[2]) + " >" + String(menu_1_0[3]) + "<", true);
+          break;
+      }
+    } else if (levelIndex_0 == 1) {
+      switch (levelIndex_1) {
+        case 0:
+          screenCtrl.changeSingleLine(2, " >" + String(menu_1_1[0]) + "< " + String(menu_1_1[1]) + " " + String(menu_1_1[2]) + " " + String(menu_1_1[3]) + " " + String(menu_1_1[4]), true);
+          break;
+        case 1:
+          screenCtrl.changeSingleLine(2, " " + String(menu_1_1[0]) + " >" + String(menu_1_1[1]) + "< " + String(menu_1_1[2]) + " " + String(menu_1_1[3]) + " " + String(menu_1_1[4]), true);
+          break;
+        case 2:
+          screenCtrl.changeSingleLine(2, " " + String(menu_1_1[0]) + " " + String(menu_1_1[1]) + " >" + String(menu_1_1[2]) + "< " + String(menu_1_1[3]) + " " + String(menu_1_1[4]), true);
+          break;
+        case 3:
+          screenCtrl.changeSingleLine(2, " " + String(menu_1_1[0]) + " " + String(menu_1_1[1]) + " " + String(menu_1_1[2]) + " >" + String(menu_1_1[3]) + "< " + String(menu_1_1[4]), true);
+          break;
+        case 4:
+          screenCtrl.changeSingleLine(2, " " + String(menu_1_1[0]) + " " + String(menu_1_1[1]) + " " + String(menu_1_1[2]) + " " + String(menu_1_1[3]) + " >" + String(menu_1_1[4]) + "<", true);
+          break;
+      }
+    }
+  }
+}
+
+
+void buttonBuzzer() {
+  tone(BUZZER_PIN, 2000);
+  delay(5);
+  noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(5);
+  tone(BUZZER_PIN, 1000);
+  delay(5);
+  noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(5);
+  tone(BUZZER_PIN, 500);
+  delay(5);
+  noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN, HIGH);
+}
+
+void interaction() {
+  if (buttonPressFlag && !buttonState) {
+    switch (buttonPress) {
+      case BUTTON_UP:
+        Serial0.println("UP");
+        buttonState = true;
+        // if (syncInteractionEspnow) {
+        //   wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+        //   "{\"T\":202,\"line\":1,\"text\":\"UP\",\"update\":4}");
+        // }
+        menuLevel--;
+        if (menuLevel < 0) {
+          menuLevel = 0;
+        }
+        if (menuLevel == 0) {
+          levelIndex_1 = 0;
+        }
+        if (menuLevel == 1) {
+          levelIndex_2 = 0;
+        }
+        break;
+      case BUTTON_DOWN:
+        Serial0.println("DOWN");
+        buttonState = true;
+        // if (syncInteractionEspnow) {
+        //   wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+        //   "{\"T\":202,\"line\":1,\"text\":\"DOWN\",\"update\":4}");
+        // }
+        menuLevel++;
+        if (menuLevel > maxMenuLevel) {
+          menuLevel = maxMenuLevel;
+        }
+        break;
+      case BUTTON_LEFT:
+        Serial0.println("LEFT");
+        buttonState = true;
+        // if (syncInteractionEspnow) {
+        //   wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+        //   "{\"T\":202,\"line\":1,\"text\":\"LEFT\",\"update\":4}");
+        // }
+        if (menuLevel == 0) {
+          levelIndex_0--;
+          if (levelIndex_0 < 0) {
+            levelIndex_0 = 0;
+          }
+        } else if (menuLevel == 1) {
+          levelIndex_1--;
+          if (levelIndex_1 < 0) {
+            levelIndex_1 = 0;
+          }
+        }
+        break;
+      case BUTTON_RIGHT:
+        Serial0.println("RIGHT");
+        buttonState = true;
+        // if (syncInteractionEspnow) {
+        //   wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+        //   "{\"T\":202,\"line\":1,\"text\":\"RIGHT\",\"update\":4}");
+        // }
+        if (menuLevel == 0) {
+          levelIndex_0++;
+          if (levelIndex_0 > maxLevelIndex_0) {
+            levelIndex_0 = maxLevelIndex_0;
+          }
+        } else if (menuLevel == 1) {
+          if (levelIndex_0 == 0) {
+            levelIndex_1++;
+            if (levelIndex_1 > maxLevelIndex_1_0) {
+              levelIndex_1 = maxLevelIndex_1_0;
+            }
+          } else if (levelIndex_0 == 1) {
+            levelIndex_1++;
+            if (levelIndex_1 > maxLevelIndex_1_1) {
+              levelIndex_1 = maxLevelIndex_1_1;
+            }
+          }
+        }
+        break;
+      case BUTTON_OK:
+        Serial0.println("OK");
+        buttonState = true;
+        // if (syncInteractionEspnow) {
+        // wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+        //   "{\"T\":202,\"line\":1,\"text\":\"OK\",\"update\":4}");
+        // }
+        break;
+    }
+    buttonBuzzer();
+    displayMenu();
+    buttonPressFlag = false;
+
+    if (syncInteractionEspnow) {
+      jsonFeedback.clear();
+      jsonFeedback["T"] = CMD_BUTTONS;
+      jsonFeedback["L"] = menuLevel;
+      jsonFeedback["I0"] = levelIndex_0;
+      jsonFeedback["I1"] = levelIndex_1;
+      jsonFeedback["I2"] = levelIndex_2;
+      wireless.sendEspNowJson(broadcastAddress, jsonFeedback);
+    }
+  }
+}
+
+
+
+
+void buttonInteractionCtrl(int8_t L, int8_t I0, int8_t I1, int8_t I2) {
+  // jsonFeedback.clear();
+  // jsonFeedback["T"] = CMD_BUTTONS;
+  // jsonFeedback["L"] = L;
+  // jsonFeedback["I0"] = I0;
+  // jsonFeedback["I1"] = I1;
+  // jsonFeedback["I2"] = I2;
+  // wireless.sendEspNowJson(broadcastAddress, jsonFeedback);
+  menuLevel = L;
+  levelIndex_0 = I0;
+  levelIndex_1 = I1;
+  levelIndex_2 = I2;
+  displayMenu();
+  buttonBuzzer();
+}
+
+
 
 void onButtonPress(Button button) {
   buttonPress = button;
@@ -106,8 +418,8 @@ void setup() {
   runMission("boot", 0, 1);
 
   // esp-now init
-  wireless.espnowInit(false);
-  // wireless.espnowInit(true);
+  // wireless.espnowInit(false);
+  wireless.espnowInit(true);
   wireless.setJsonCommandCallback(jsonCmdReceiveHandler);
 
   wireless.addMacToPeer(broadcastAddress);  
@@ -117,6 +429,15 @@ void setup() {
   jsonFeedback["text"] = "Lygion Robotics";
   jsonFeedback["update"] = 1;
   wireless.sendEspNowJson(broadcastAddress, jsonFeedback);
+
+  jsonFeedback.clear();
+  jsonFeedback["T"] = CMD_DISPLAY_SINGLE;
+  jsonFeedback["line"] = 3;
+  jsonFeedback["text"] = "Lygion.ai";
+  jsonFeedback["update"] = 1;
+  wireless.sendEspNowJson(broadcastAddress, jsonFeedback);
+
+  displayMenu();
 }
 
 
@@ -270,6 +591,12 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         screenCtrl.changeSingleLine(2, jsonCmdInput["l2"], false);
                         screenCtrl.changeSingleLine(3, jsonCmdInput["l3"], false);
                         screenCtrl.changeSingleLine(4, jsonCmdInput["l4"], true);
+                        break;
+  case CMD_BUTTONS:
+                        buttonInteractionCtrl(jsonCmdInput["L"],
+                                              jsonCmdInput["I0"],
+                                              jsonCmdInput["I1"],
+                                              jsonCmdInput["I2"]);
                         break;
 
 
@@ -487,42 +814,43 @@ void loop() {
   // wireless.sendEspNow(broadcastAddress, message);
   // delay(1000);
 
-  if (buttonPressFlag && !buttonState) {
-    switch (buttonPress) {
-      case BUTTON_UP:
-        Serial0.println("UP");
-        buttonState = true;
-        wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
-          "{\"T\":202,\"line\":1,\"text\":\"UP\",\"update\":3}");
-        break;
-      case BUTTON_DOWN:
-        Serial0.println("DOWN");
-        buttonState = true;
-        wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
-          "{\"T\":202,\"line\":1,\"text\":\"DOWN\",\"update\":3}");
-        break;
-      case BUTTON_LEFT:
-        Serial0.println("LEFT");
-        buttonState = true;
-        wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
-          "{\"T\":202,\"line\":1,\"text\":\"LEFT\",\"update\":3}");
-        break;
-      case BUTTON_RIGHT:
-        Serial0.println("RIGHT");
-        buttonState = true;
-        wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
-          "{\"T\":202,\"line\":1,\"text\":\"RIGHT\",\"update\":3}");
-        break;
-      case BUTTON_OK:
-        Serial0.println("OK");
-        buttonState = true;
-        wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
-          "{\"T\":202,\"line\":1,\"text\":\"OK\",\"update\":3}");
-        break;
-    }
-    buttonPressFlag = false;
-  }
+  // if (buttonPressFlag && !buttonState) {
+  //   switch (buttonPress) {
+  //     case BUTTON_UP:
+  //       Serial0.println("UP");
+  //       buttonState = true;
+  //       wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+  //         "{\"T\":202,\"line\":1,\"text\":\"UP\",\"update\":4}");
+  //       break;
+  //     case BUTTON_DOWN:
+  //       Serial0.println("DOWN");
+  //       buttonState = true;
+  //       wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+  //         "{\"T\":202,\"line\":1,\"text\":\"DOWN\",\"update\":4}");
+  //       break;
+  //     case BUTTON_LEFT:
+  //       Serial0.println("LEFT");
+  //       buttonState = true;
+  //       wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+  //         "{\"T\":202,\"line\":1,\"text\":\"LEFT\",\"update\":4}");
+  //       break;
+  //     case BUTTON_RIGHT:
+  //       Serial0.println("RIGHT");
+  //       buttonState = true;
+  //       wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+  //         "{\"T\":202,\"line\":1,\"text\":\"RIGHT\",\"update\":4}");
+  //       break;
+  //     case BUTTON_OK:
+  //       Serial0.println("OK");
+  //       buttonState = true;
+  //       wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
+  //         "{\"T\":202,\"line\":1,\"text\":\"OK\",\"update\":4}");
+  //       break;
+  //   }
+  //   buttonPressFlag = false;
+  // }
 
+  interaction();
 
 
   if (newCmdReceived) {

@@ -97,8 +97,8 @@ static int timeOffset = 50;
 #define CMD_BUZZER_CTRL 205
 
 // buttons
-// {"T":206,"b":1}
-
+// {"T":206,"L":0,"I0":0,"I1":0,"I2":0}
+#define CMD_BUTTONS 206
 
 
 

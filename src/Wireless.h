@@ -8,6 +8,14 @@
 #include <ArduinoJson.h>
 
 typedef void (*JsonCommandCallback)(const JsonDocument& jsonCmdInput);
+static uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+static uint8_t knownMacs[][6] = {
+    {0x24, 0x6F, 0x28, 0xAB, 0xCD, 0xEF},
+    {0x24, 0x6F, 0x28, 0x12, 0x34, 0x56}
+};
+static bool receivedFromKnownMac = false;
+// esp-now, on -> true, off -> false
+static bool espnowMode = true;
 
 class Wireless{
     public:

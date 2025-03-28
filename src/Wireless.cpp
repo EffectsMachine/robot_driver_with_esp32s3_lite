@@ -27,7 +27,7 @@ int maxClients = 1;
 bool statusAP = false;
 bool statusSTA = false;
 
-bool espnowMode = true;
+
 
 bool Wireless::setAP(String ssid, String password, int wifiChannel) {
     if (wifiMode == WIFI_MODE_NONE) {
@@ -145,18 +145,30 @@ String Wireless::getSTAIP() {
     }
 }
 
+bool isKnownMac(const uint8_t *mac) {
+    for (int i = 0; i < sizeof(knownMacs) / sizeof(knownMacs[0]); i++) {
+        if (memcmp(mac, knownMacs[i], 6) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
 
-
-// void OnDataRecv(const esp_now_peer_info_t *info, const unsigned char* incomingData, int len) {
-//     DeserializationError err = deserializeJson(jsonCmdReceiveEspnow, incomingData);
-//     if (err == DeserializationError::Ok) {
-//         if (jsonCommandCallback != nullptr) {
-//             jsonCommandCallback(jsonCmdReceiveEspnow);
-//         }
-//     } else {
-//     }
-// }
 void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
+    if (!espnowMode) {
+        Serial.println("ESP-NOW is off, skip receiving data");
+        Serial0.println("ESP-NOW is off, skip receiving data");
+        return;
+    }
+
+    if (receivedFromKnownMac) {
+        if (!isKnownMac(mac_addr)) {
+            // Serial.println("Received data from unknown MAC address, skip processing");
+            // Serial0.println("Received data from unknown MAC address, skip processing");
+            return;
+        }
+    }
+
     memcpy(&espNowMegsRecv, data, sizeof(espNowMegsRecv));
 
     Serial.print("Bytes received: "); Serial.println(data_len);
@@ -166,8 +178,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
     if (err == DeserializationError::Ok && jsonCommandCallback != nullptr) {
         jsonCommandCallback(jsonCmdReceiveEspnow);
     }
-}
-    
+} 
 
 void Wireless::espnowInit(bool longRange) {
     if (longRange) {
@@ -235,6 +246,12 @@ void Wireless::macStringToByteArray(const String& macString, uint8_t* byteArray)
 }
 
 bool Wireless::sendEspNow(String macInput, String data) {
+    if (!espnowMode) {
+        Serial.println("ESP-NOW is off, skip sending data");
+        Serial0.println("ESP-NOW is off, skip sending data");
+        return false;
+    }
+
     if (macInput.length() != 17) {
         Serial0.println("invalid MAC address format.");
         return false;
@@ -254,6 +271,12 @@ bool Wireless::sendEspNow(String macInput, String data) {
 }
 
 bool Wireless::sendEspNowJson(uint8_t mac[6], const JsonDocument& jsonCmdInput) {
+    if (!espnowMode) {
+        Serial.println("ESP-NOW is off, skip sending data");
+        Serial0.println("ESP-NOW is off, skip sending data");
+        return false;
+    }
+
     char outputString[250];
     serializeJson(jsonCmdInput, outputString);
 
