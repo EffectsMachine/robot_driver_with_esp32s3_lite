@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include <Wire.h>
 #include <nvs_flash.h>
+#include <MuiPlusPlus.hpp>
 #include "USB.h"
 #include "USBCDC.h"
 #include "tusb.h"
@@ -27,6 +28,7 @@ BodyCtrl bodyCtrl;
 FilesCtrl filesCtrl;
 ScreenCtrl screenCtrl;
 Wireless wireless;
+// MuiPlusPlus menu;
 bool newCmdReceived = false;
 bool breakloop = false;
 unsigned long tuneStartTime;
@@ -54,7 +56,7 @@ void buttonBuzzer() {
   noTone(BUZZER_PIN);
   digitalWrite(BUZZER_PIN, HIGH);
   delay(5);
-  tone(BUZZER_PIN, 500);
+  tone(BUZZER_PIN, 3000);
   delay(5);
   noTone(BUZZER_PIN);
   digitalWrite(BUZZER_PIN, HIGH);
@@ -67,24 +69,8 @@ void setup() {
   Serial0.println("device starting...");
 
   // buzzer
-  pinMode(BUZZER_PIN, OUTPUT);
-  tone(BUZZER_PIN, 1000);
-  delay(15);
-  noTone(BUZZER_PIN);
-  digitalWrite(BUZZER_PIN, HIGH);
-  delay(25);
-  tone(BUZZER_PIN, 3000);
-  delay(15);
-  noTone(BUZZER_PIN);
-  digitalWrite(BUZZER_PIN, HIGH);
-  delay(25);
-  tone(BUZZER_PIN, 5000);
-  delay(15);
-  noTone(BUZZER_PIN);
-  digitalWrite(BUZZER_PIN, HIGH);
-  delay(25);
-  noTone(BUZZER_PIN);
-  digitalWrite(BUZZER_PIN, HIGH);
+  // pinMode(BUZZER_PIN, OUTPUT);
+  // buttonBuzzer();
 
   // fake args, it will be ignored by the USB stack, default baudrate is 12Mbps
   USBSerial.begin(BAUD_RATE);
@@ -130,7 +116,40 @@ void setup() {
   jsonFeedback["update"] = 1;
   wireless.sendEspNowJson(broadcastAddress, jsonFeedback);
 
-  displayMenu();
+  // disable simple press/release events, we do not need them
+  // buttonUp.enableEvent(event_t::press,      false);
+  // buttonUp.enableEvent(event_t::release,    false);
+  // buttonDown.enableEvent(event_t::press,      false);
+  // buttonDown.enableEvent(event_t::release,    false);
+  // buttonLeft.enableEvent(event_t::press,      false);
+  // buttonLeft.enableEvent(event_t::release,    false);
+  // buttonRight.enableEvent(event_t::press,      false);
+  // buttonRight.enableEvent(event_t::release,    false);
+  // buttonOk.enableEvent(event_t::press,      false);
+  // buttonOk.enableEvent(event_t::release,    false);
+
+  // // enable clicks
+  // buttonUp.enableEvent(event_t::click);
+  // buttonDown.enableEvent(event_t::click);
+  // buttonLeft.enableEvent(event_t::click);
+  // buttonRight.enableEvent(event_t::click);
+  // buttonOk.enableEvent(event_t::click);
+
+  // // enable longpress to cycle through menu
+  // buttonLeft.enableEvent(event_t::longPress);
+  // buttonRight.enableEvent(event_t::longPress);
+
+  buttonUp.begin();
+  buttonUp.onPress([]() {
+    Serial0.println("Button Up Pressed");
+    screenCtrl.changeSingleLine(1, "Button Up Pressed", true);
+  });
+  buttonUp.onRelease([]() {
+    Serial0.println("Button Up Released");
+    screenCtrl.changeSingleLine(1, "Button Up Released", true);
+  });
+  buttonUp.enable();
+
 }
 
 
@@ -249,13 +268,31 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         break;
 
 
-
+  // led/screen/button/buzzer ctrl
 	// case CMD_SET_COLOR: 
   //                       led.setColor(jsonCmdInput["set"][0], 
   //                                    jsonCmdInput["set"][1], 
   //                                    jsonCmdInput["set"][2], 
   //                                    jsonCmdInput["set"][3]);
 	// 											break;
+  case CMD_DISPLAY_SINGLE:
+                        screenCtrl.changeSingleLine(jsonCmdInput["line"], 
+                                                    jsonCmdInput["text"], 
+                                                    jsonCmdInput["update"]);
+                        break;
+  case CMD_DISPLAY_UPDATE:
+                        screenCtrl.updateFrame();
+                        break;
+                        
+  case CMD_DISPLAY_FRAME:
+                        screenCtrl.changeSingleLine(1, jsonCmdInput["l1"], false);
+                        screenCtrl.changeSingleLine(2, jsonCmdInput["l2"], false);
+                        screenCtrl.changeSingleLine(3, jsonCmdInput["l3"], false);
+                        screenCtrl.changeSingleLine(4, jsonCmdInput["l4"], true);
+                        break;
+  case CMD_DISPLAY_CLEAR:
+                        screenCtrl.clearDisplay();
+                        break;
   case CMD_BUZZER_CTRL:
                         tone(BUZZER_PIN, jsonCmdInput["freq"]);
                         breakloop = false;
@@ -270,27 +307,12 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         noTone(BUZZER_PIN);
                         digitalWrite(BUZZER_PIN, HIGH);
                         break;
-
-  case CMD_DISPLAY_SINGLE:
-                        screenCtrl.changeSingleLine(jsonCmdInput["line"], 
-                                                    jsonCmdInput["text"], 
-                                                    jsonCmdInput["update"]);
-                        break;
-  case CMD_DISPLAY_UPDATE:
-                        screenCtrl.updateFrame();
-                        break;
-  case CMD_DISPLAY_FRAME:
-                        screenCtrl.changeSingleLine(1, jsonCmdInput["l1"], false);
-                        screenCtrl.changeSingleLine(2, jsonCmdInput["l2"], false);
-                        screenCtrl.changeSingleLine(3, jsonCmdInput["l3"], false);
-                        screenCtrl.changeSingleLine(4, jsonCmdInput["l4"], true);
-                        break;
-  case CMD_BUTTONS:
-                        buttonInteractionCtrl(jsonCmdInput["L"],
-                                              jsonCmdInput["I0"],
-                                              jsonCmdInput["I1"],
-                                              jsonCmdInput["I2"]);
-                        break;
+  // case CMD_BUTTONS:
+  //                       buttonInteractionCtrl(jsonCmdInput["L"],
+  //                                             jsonCmdInput["I0"],
+  //                                             jsonCmdInput["I1"],
+  //                                             jsonCmdInput["I2"]);
+  //                       break;
 
 
 
@@ -543,7 +565,15 @@ void loop() {
   //   buttonPressFlag = false;
   // }
 
-  interaction();
+  // interaction();
+
+  // jsonFeedback.clear();
+  // jsonFeedback["T"] = CMD_DATA_RECV_TEST;
+  // if (wireless.sendEspNowJson(broadcastAddress, jsonFeedback)) {
+  //   data_send_times++;
+  //   data_screen_test_update();
+  // }
+  // delay(3000);
 
 
   if (newCmdReceived) {

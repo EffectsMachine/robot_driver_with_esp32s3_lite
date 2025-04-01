@@ -17,6 +17,7 @@ public:
     void update();
     void changeSingleLine(int lineNum, String text, bool updateFlag);
     void updateFrame();
+    void clearDisplay();
 };
 
 #endif // SCREEN_H
