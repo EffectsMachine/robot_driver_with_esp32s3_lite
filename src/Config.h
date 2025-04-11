@@ -92,13 +92,16 @@ static int timeOffset = 50;
 // ctrl oled display a frame
 // {"T":204,"l1":"Hello, world!","l2":"Hello, world!","l3":"Hello, world!","l4":"Hello, world!"}
 #define CMD_DISPLAY_FRAME 204
+// oled display clear
+// {"T":205}
+#define CMD_DISPLAY_CLEAR 205
 // buzzer ctrl
-// {"T":205,"freq":1000,"duration":1000}
-#define CMD_BUZZER_CTRL 205
+// {"T":206,"freq":1000,"duration":1000}
+#define CMD_BUZZER_CTRL 206
 
 // buttons
-// {"T":206,"L":0,"I0":0,"I1":0,"I2":0}
-#define CMD_BUTTONS 206
+// {"T":207,"L":0,"I0":0,"I1":0,"I2":0}
+#define CMD_BUTTONS 207
 
 
 
@@ -160,6 +163,10 @@ static int timeOffset = 50;
 #define CMD_ESP_NOW_SEND 413
 // {"T":414,"mac":"FF:FF:FF:FF:FF:FF"}
 #define CMD_ADD_MAC 414
+
+// esp-now test:
+// {"T":490,"mac":"FF:FF:FF:FF:FF:FF","data":"{\"T\":490}"}
+// #define CMD_DATA_RECV_TEST 490
 
 
 // --- System Configuration ---

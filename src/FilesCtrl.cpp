@@ -422,7 +422,6 @@ String FilesCtrl::findCmdByType(String missionName, int cmdType) {
     while (file.available()) {
         line = file.readStringUntil('\n');
         DeserializationError lineErr = deserializeJson(cmdJson, line);
-
         if (lineErr == DeserializationError::Ok && cmdJson["T"] == cmdType) {
             targetCmd = line;
             break;

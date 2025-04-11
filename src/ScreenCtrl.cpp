@@ -75,3 +75,8 @@ void ScreenCtrl::updateFrame() {
     display.print(line_4);
     display.display();
 }
+
+void ScreenCtrl::clearDisplay() {
+    display.clearDisplay();
+    display.display();
+}
