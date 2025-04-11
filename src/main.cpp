@@ -363,8 +363,10 @@ void onButtonPress(Button button) {
 }
 
 void setup() {
+  delay(200);
   Serial0.begin(BAUD_RATE);
   Wire.begin(IIC_SDA, IIC_SCL);
+  Wire.setClock(400000);
   Serial.println("device starting...");
   Serial0.println("device starting...");
 
@@ -397,8 +399,10 @@ void setup() {
   // led.init();
   filesCtrl.init();
 
-  // bodyCtrl.init();
-  // bodyCtrl.jointMiddle();
+  bodyCtrl.init();
+  bodyCtrl.jointMiddle();
+  delay(1000);
+  bodyCtrl.jointMiddle();
 
   screenCtrl.init();
   screenCtrl.displayText("LYgion", 0, 0, 2);

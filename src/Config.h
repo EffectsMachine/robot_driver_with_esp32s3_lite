@@ -4,8 +4,8 @@
 #define RGB_NUM 2
 
 // config for the bus servo
-#define BUS_SERVO_RX 18
-#define BUS_SERVO_TX 19
+#define BUS_SERVO_RX 5
+#define BUS_SERVO_TX 4
 
 // pin for I2C
 #define I2C_SDA 32
