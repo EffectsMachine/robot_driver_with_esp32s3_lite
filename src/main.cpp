@@ -12,7 +12,8 @@
 
 #include "Config.h"
 // #include "RGBLight.h"
-#include "BodyCtrl.h"
+// #include "BodyCtrl.h"
+#include "jointsCtrl.h"
 #include "FilesCtrl.h"
 #include "ScreenCtrl.h"
 #include "Wireless.h"
