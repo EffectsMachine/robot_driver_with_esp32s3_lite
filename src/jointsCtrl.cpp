@@ -1,4 +1,5 @@
 #include "jointsCtrl.h"
+#include "Config.h"
 
 void JointsCtrl::init(int baud) {
     Serial1.begin(baud, SERIAL_8N1, BUS_SERVO_RX, BUS_SERVO_TX);
@@ -28,12 +29,11 @@ bool JointsCtrl::setJointType(u_int8_t type) {
             jointType = type;
             return true;
             break;
-    } else {
-        return false;
-    }
+    } 
+    return false;
 }
 
-void JointsCtrl::setEncoderStepRange(u_int16_t steps, double angle) {
+bool JointsCtrl::setEncoderStepRange(u_int16_t steps, double angle) {
     if (steps < 512) {
         return false;
     }
@@ -43,6 +43,17 @@ void JointsCtrl::setEncoderStepRange(u_int16_t steps, double angle) {
     jointSteps = steps;
     middleSteps = round(jointSteps/2 - 1);
     jointRangeAngle = angle;
+    jointRangeRad = jointRangeAngle * M_PI / 180.0;
+
+    for(int i = 0; i < JOINTS_NUM; i++) {
+        jointsZeroPos[i] = middleSteps; // or any other default value
+        jointsFeedbackPos[i] = middleSteps; // or any other default value
+        jointsCurrentPos[i] = middleSteps; // or any other default value
+        jointsGoalPos[i] = middleSteps; // or any other default value
+        jointsLastPos[i] = middleSteps; // or any other default value
+    }
+
+    return true;
 }
 
 int* JointsCtrl::singleFeedBack(u_int8_t id) {
@@ -56,7 +67,7 @@ int* JointsCtrl::singleFeedBack(u_int8_t id) {
     // [6]moving
     // [7]current
 
-    int feedback[SERVO_FEEDBACK_NUM];
+    static int feedback[SERVO_FEEDBACK_NUM];
     switch (jointType) {
         case JOINT_TYPE_SC:
             sc.FeedBack(id);
@@ -75,7 +86,7 @@ int* JointsCtrl::singleFeedBack(u_int8_t id) {
             break;
         case JOINT_TYPE_SMST:
             smst.FeedBack(id);
-            if (smst.getLasrError()) {
+            if (smst.getLastError()) {
                 feedback[FB_PING] = -1;
                 break;
             }
@@ -135,6 +146,7 @@ bool JointsCtrl::ping(u_int8_t id) {
             }
             break;
     }
+    return false;
 }
 
 bool JointsCtrl::changeID(u_int8_t old_id, u_int8_t new_id) {
@@ -170,6 +182,7 @@ bool JointsCtrl::changeID(u_int8_t old_id, u_int8_t new_id) {
             }
             break;
     }
+    return false;
 }
 
 bool JointsCtrl::setMiddle(u_int8_t id) {
@@ -194,6 +207,7 @@ bool JointsCtrl::setMiddle(u_int8_t id) {
             }
             break;
     }
+    return false;
 }
 
 void JointsCtrl::moveMiddle(u_int8_t id) {
@@ -236,40 +250,163 @@ void JointsCtrl::torqueLock(u_int8_t id, bool state) {
     }
 }
 
-void JointsCtrl::singleSC(u_int8_t id, int pos, int time, int speed) {
-    sc.WritePos(id, pos, time, speed);
+void JointsCtrl::stepsCtrlSC(u_int8_t id, int pos, int time, int speed, bool move_trigger) {
+    if (move_trigger) {
+        sc.WritePos(id, pos, time, speed);
+    } else {
+        sc.RegWritePos(id, pos, time, speed);
+    }
 }
 
-void JointsCtrl::singleSMST(u_int8_t id, int pos, int speed, int acc) {
-    smst.WritePosEx(id, pos, speed, acc);
+void JointsCtrl::stepsCtrlSMST(u_int8_t id, int pos, int speed, int acc, bool move_trigger) {
+    if (move_trigger) {
+        smst.WritePosEx(id, pos, speed, acc);
+    } else {
+        smst.RegWritePosEx(id, pos, speed, acc);
+    }
 }
 
-void JointsCtrl::singleHL(u_int8_t id, int pos, int speed, int acc, int currt_limit) {
-    hl.WritePosEx(id, pos, speed, acc, currt_limit);
+void JointsCtrl::stepsCtrlHL(u_int8_t id, int pos, int speed, int acc, int currt_limit, bool move_trigger) {
+    if (move_trigger) {
+        hl.WritePosEx(id, pos, speed, acc, currt_limit);
+    } else {
+        hl.RegWritePosEx(id, pos, speed, acc, currt_limit);
+    }
 }
 
 double JointsCtrl::mapDouble(double x, double in_min, double in_max, double out_min, double out_max) {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-void JointsCtrl::angleCtrlSC(u_int8_t id, int mid_pos, double angle, double speed) {
-    sc.WritePos(id, 
-                mid_pos + round(mapDouble(angle, 0, jointRangeAngle, 0, jointSteps)), 
-                0, 
-                round(mapDouble(speed, 0, jointRangeAngle, 0, jointSteps)));
+int JointsCtrl::angleCtrlSC(u_int8_t id, int mid_pos, double angle, double speed, bool move_trigger) {
+    int goal_pos = mid_pos + round(mapDouble(angle, 0, jointRangeAngle, 0, jointSteps));
+    int goal_spd = round(mapDouble(speed, 0, jointRangeAngle, 0, jointSteps));
+    if (move_trigger) {
+        sc.WritePos(id, goal_pos, 0, goal_spd);
+    } else {
+        sc.RegWritePos(id, goal_pos, 0, goal_spd);
+    }
+    return goal_pos;
 }
 
-void JointsCtrl::angleCtrlSMST(u_int8_t id, double angle, double speed, double acc) {
-    smst.WritePosEx(id, 
-                    middleSteps + round((angle, 0, jointRangeAngle, 0, jointSteps)), 
-                    round(mapDouble(speed, 0, jointRangeAngle, 0, jointSteps)), 
-                    round(mapDouble(acc, 0, jointRangeAngle, 0, jointSteps)));
+int JointsCtrl::angleCtrlSMST(u_int8_t id, double angle, double speed, double acc, bool move_trigger) {
+    int goal_pos = middleSteps + round(mapDouble(angle, 0, jointRangeAngle, 0, jointSteps));
+    int goal_spd = round(mapDouble(speed, 0, jointRangeAngle, 0, jointSteps));
+    int goal_acc = round(mapDouble(acc, 0, jointRangeAngle, 0, jointSteps));
+    if (move_trigger) {
+        smst.WritePosEx(id, goal_pos, goal_spd, goal_acc);
+    } else {
+        smst.RegWritePosEx(id, goal_pos, goal_spd, goal_acc);
+    }
+    return goal_pos;
 }
 
-void JointsCtrl::angleCtrlHL(u_int8_t id, double angle, double speed, double acc, int currt_limit) {
-    hl.WritePosEx(id, 
-                  middleSteps + round((angle, 0, jointRangeAngle, 0, jointSteps)), 
-                  round(mapDouble(speed, 0, jointRangeAngle, 0, jointSteps)), 
-                  round(mapDouble(acc, 0, jointRangeAngle, 0, jointSteps)),
-                  currt_limit)
+int JointsCtrl::angleCtrlHL(u_int8_t id, double angle, double speed, double acc, int currt_limit, bool move_trigger) {
+    int goal_pos = middleSteps + round(mapDouble(angle, 0, jointRangeAngle, 0, jointSteps));
+    int goal_spd = round(mapDouble(speed, 0, jointRangeAngle, 0, jointSteps));
+    int goal_acc = round(mapDouble(acc, 0, jointRangeAngle, 0, jointSteps));
+    if (move_trigger) {
+        hl.WritePosEx(id, goal_pos, goal_spd, goal_acc, currt_limit);
+    } else {
+        hl.RegWritePosEx(id, goal_pos, goal_spd, goal_acc, currt_limit);
+    }
+    return goal_pos;
+}
+
+int JointsCtrl::radCtrlSC(u_int8_t id, int mid_pos, double rad, double speed, bool move_trigger) {
+    int goal_pos = mid_pos + round(mapDouble(rad, 0, jointRangeRad, 0, jointSteps));
+    int goal_spd = round(mapDouble(speed, 0, jointRangeRad, 0, jointSteps));
+    if (move_trigger) {
+        sc.WritePos(id, goal_pos, 0, goal_spd);
+    } else {
+        sc.RegWritePos(id, goal_pos, 0, goal_spd);
+    }
+    return goal_pos;
+}
+
+int JointsCtrl::radCtrlSMST(u_int8_t id, double rad, double speed, double acc, bool move_trigger) {
+    int goal_pos = middleSteps + round(mapDouble(rad, 0, jointRangeRad, 0, jointSteps));
+    int goal_spd = round(mapDouble(speed, 0, jointRangeRad, 0, jointSteps));
+    int goal_acc = round(mapDouble(acc, 0, jointRangeRad, 0, jointSteps));
+    if (move_trigger) {
+        smst.WritePosEx(id, goal_pos, goal_spd, goal_acc);
+    } else {
+        smst.RegWritePosEx(id, goal_pos, goal_spd, goal_acc);
+    }
+    return goal_pos;
+}
+
+int JointsCtrl::radCtrlHL(u_int8_t id, double rad, double speed, double acc, int currt_limit, bool move_trigger) {
+    int goal_pos = middleSteps + round(mapDouble(rad, 0, jointRangeRad, 0, jointSteps));
+    int goal_spd = round(mapDouble(speed, 0, jointRangeRad, 0, jointSteps));
+    int goal_acc = round(mapDouble(acc, 0, jointRangeRad, 0, jointSteps));
+    if (move_trigger) {
+        hl.WritePosEx(id, goal_pos, goal_spd, goal_acc, currt_limit);
+    } else {
+        hl.RegWritePosEx(id, goal_pos, goal_spd, goal_acc, currt_limit);
+    }
+    return goal_pos;
+}
+
+void JointsCtrl::moveTrigger() {
+    switch (jointType) {
+        case JOINT_TYPE_SC:
+            sc.RegWriteAction();
+            break;
+        case JOINT_TYPE_SMST:
+            smst.RegWriteAction();
+            break;
+        case JOINT_TYPE_HL:
+            hl.RegWriteAction();
+            break;
+    }
+}
+
+// for applications: LyLinkArm
+int* JointsCtrl::getJointsZeroPosArray() {
+    return jointsZeroPos;
+}
+
+void JointsCtrl::setJointsZeroPosArray(int values[]) {
+    for (int i = 0; i < JOINTS_NUM; i++) {
+        jointsZeroPos[i] = values[i];
+    }
+}
+
+int* JointsCtrl::getLinkArmPosSC() {
+    for (int i = 0; i < JOINTS_NUM; i++) {
+        jointsFeedbackPos[i] = sc.ReadPos(jointID[i]);
+    }
+    return jointsFeedbackPos;
+}
+
+void JointsCtrl::setCurrentSCPosMiddle() {
+    for (int i = 0; i < JOINTS_NUM; i++) {
+        jointsFeedbackPos[i] = sc.ReadPos(jointID[i]);
+        jointsZeroPos[i] = jointsFeedbackPos[i];
+    }
+}
+
+// for applications: LyLinkArm
+// joint_1 : as the base joint
+// joint_2 : as the shoulder joint (base front)
+// joint_3 : as the elbow joint (base back)
+// joint_4 : as the gripper joint
+// >-------O----O
+// |       |   /
+// 3       |  /
+//       1-S E-2
+//          B-0
+void JointsCtrl::linkArmSCJointsCtrlAngle(double angles[]) {
+    for (int i = 0; i < JOINTS_NUM; i++) {
+        jointsCurrentPos[i] = angleCtrlSC(jointID[i], jointsZeroPos[i], angles[i], 0, false);
+    }
+    moveTrigger();
+}
+
+void JointsCtrl::linkArmSCJointsCtrlRad(double rads[]) {
+    for (int i = 0; i < JOINTS_NUM; i++) {
+        jointsCurrentPos[i] = radCtrlSC(jointID[i], jointsZeroPos[i], rads[i], 0, false);
+    }
+    moveTrigger();
 }

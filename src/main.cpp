@@ -25,7 +25,7 @@ USBCDC USBSerial; // Declare USBSerial as an instance of USBCDC
 DeserializationError err;
 String outputString;
 // RGBLight led;
-BodyCtrl bodyCtrl;
+// BodyCtrl bodyCtrl;
 FilesCtrl filesCtrl;
 ScreenCtrl screenCtrl;
 Wireless wireless;
@@ -84,10 +84,10 @@ void setup() {
   // led.init();
   filesCtrl.init();
 
-  bodyCtrl.init();
-  bodyCtrl.jointMiddle();
-  delay(1000);
-  bodyCtrl.jointMiddle();
+  // bodyCtrl.init();
+  // bodyCtrl.jointMiddle();
+  // delay(1000);
+  // bodyCtrl.jointMiddle();
 
   screenCtrl.init();
   screenCtrl.displayText("LYgion", 0, 0, 2);
@@ -211,65 +211,65 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   cmdType = jsonCmdInput["T"].as<int>();
   switch(cmdType){
 	case CMD_JOINT_MIDDLE:
-                        bodyCtrl.jointMiddle();
+                        // bodyCtrl.jointMiddle();
                         break;
   case CMD_RELEASE_TORQUE:
-                        bodyCtrl.releaseTorque();
+                        // bodyCtrl.releaseTorque();
                         break;
   case CMD_SINGLE_SERVO_CTRL:
-                        bodyCtrl.singleServoCtrl(jsonCmdInput["id"], 
-                                                 jsonCmdInput["goal"], 
-                                                 jsonCmdInput["time"], 
-                                                 jsonCmdInput["spd"]);
+                        // bodyCtrl.singleServoCtrl(jsonCmdInput["id"], 
+                        //                          jsonCmdInput["goal"], 
+                        //                          jsonCmdInput["time"], 
+                        //                          jsonCmdInput["spd"]);
                         break;
   case CMD_GET_JOINTS_ZERO:
-                        memcpy(jointsZeroPos, bodyCtrl.getJointsZeroPosArray(), sizeof(jointsZeroPos));
-                        for (int i = 0; i < 12; i++) {  
-                          Serial.print("Joint ");
-                          Serial.print(i);
-                          Serial.print(": ");
-                          Serial.println(jointsZeroPos[i]);
-                        }
+                        // memcpy(jointsZeroPos, bodyCtrl.getJointsZeroPosArray(), sizeof(jointsZeroPos));
+                        // for (int i = 0; i < 12; i++) {  
+                        //   Serial.print("Joint ");
+                        //   Serial.print(i);
+                        //   Serial.print(": ");
+                        //   Serial.println(jointsZeroPos[i]);
+                        // }
                         break;
   case CMD_SET_JOINTS_ZERO:
-                        for (int i = 0; i < 12; i++) {
-                          jointsZeroPos[i] = jsonCmdInput["set"][i];
-                        }
-                        bodyCtrl.setJointsZeroPosArray(jointsZeroPos);
+                        // for (int i = 0; i < 12; i++) {
+                        //   jointsZeroPos[i] = jsonCmdInput["set"][i];
+                        // }
+                        // bodyCtrl.setJointsZeroPosArray(jointsZeroPos);
                         break;
   case CMD_GET_CURRENT_POS:
-                        memcpy(jointsCurrentPos, bodyCtrl.getServoFeedback(), sizeof(jointsCurrentPos));
-                        jsonFeedback.clear();
-                        jsonFeedback["T"] = - CMD_GET_CURRENT_POS;
-                        for (int i = 0; i < 12; i++) {
-                          jsonFeedback["fb"][i] = jointsCurrentPos[i];
-                        }
-                        serializeJson(jsonFeedback, outputString);
-                        Serial.println(outputString);
+                        // memcpy(jointsCurrentPos, bodyCtrl.getServoFeedback(), sizeof(jointsCurrentPos));
+                        // jsonFeedback.clear();
+                        // jsonFeedback["T"] = - CMD_GET_CURRENT_POS;
+                        // for (int i = 0; i < 12; i++) {
+                        //   jsonFeedback["fb"][i] = jointsCurrentPos[i];
+                        // }
+                        // serializeJson(jsonFeedback, outputString);
+                        // Serial.println(outputString);
                         break;
   case CMD_SET_CURRENT_POS_ZERO:
-                        bodyCtrl.setCurrentPosZero();
-                        memcpy(jointsZeroPos, bodyCtrl.getJointsZeroPosArray(), sizeof(jointsZeroPos));
-                        jsonFeedback.clear();
-                        jsonFeedback["T"] = CMD_SET_JOINTS_ZERO;
-                        for (int i = 0; i < 12; i++) {  
-                          Serial.print("Joint ");
-                          Serial.print(i);
-                          Serial.print(": ");
-                          Serial.println(jointsZeroPos[i]);
-                          jsonFeedback["set"][i] = jointsZeroPos[i];
-                        }
-                        serializeJson(jsonFeedback, outputString);
-                        Serial.println(outputString);
-                        filesCtrl.appendStep("boot", outputString);
+                        // bodyCtrl.setCurrentPosZero();
+                        // memcpy(jointsZeroPos, bodyCtrl.getJointsZeroPosArray(), sizeof(jointsZeroPos));
+                        // jsonFeedback.clear();
+                        // jsonFeedback["T"] = CMD_SET_JOINTS_ZERO;
+                        // for (int i = 0; i < 12; i++) {  
+                        //   Serial.print("Joint ");
+                        //   Serial.print(i);
+                        //   Serial.print(": ");
+                        //   Serial.println(jointsZeroPos[i]);
+                        //   jsonFeedback["set"][i] = jointsZeroPos[i];
+                        // }
+                        // serializeJson(jsonFeedback, outputString);
+                        // Serial.println(outputString);
+                        // filesCtrl.appendStep("boot", outputString);
                         break;
   case CMD_CTRL_JOINT_ANGLE:
-                        bodyCtrl.jointAngle(jsonCmdInput["joint"], jsonCmdInput["angle"]);
-                        bodyCtrl.moveTrigger();
+                        // bodyCtrl.jointAngle(jsonCmdInput["joint"], jsonCmdInput["angle"]);
+                        // bodyCtrl.moveTrigger();
                         break;
   case CMD_CTRL_JOINT_RAD:
-                        bodyCtrl.jointRad(jsonCmdInput["joint"], jsonCmdInput["rad"]);
-                        bodyCtrl.moveTrigger();
+                        // bodyCtrl.jointRad(jsonCmdInput["joint"], jsonCmdInput["rad"]);
+                        // bodyCtrl.moveTrigger();
                         break;
 
 

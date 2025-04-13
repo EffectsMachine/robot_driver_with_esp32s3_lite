@@ -8,8 +8,12 @@
 #define JOINT_TYPE_HL 2
 
 #define JOINTS_NUM 4 // Number of joints
-#define JOINTS_SC_ZERO_POS 512 // Default zero position for each joint
-#define JOINTS_SC_MAX_POS 1023 // Maximum position for each joint
+#define JOINTS_SC_MAX_POS 1023 // Maximum position for each joint in steps
+#define JOINTS_SMST_MAX_POS 4095 // Maximum position for each joint in steps
+#define JOINTS_HL_MAX_POS 4095 // Maximum position for each joint in steps
+#define JOINTS_SC_RANGE_ANGLE 360.0 // Maximum angle for each joint in degrees
+#define JOINTS_SMST_RANGE_ANGLE 360.0 // Maximum angle for each joint in degrees
+#define JOINTS_HL_RANGE_ANGLE 360.0 // Maximum angle for each joint in degrees
 
 #define SERVO_FEEDBACK_NUM 8 // Number of feedback parameters
 #define FB_PING 0
@@ -29,14 +33,16 @@
 
 class JointsCtrl {
     private:
-        SCSCL scs;
+        SCSCL sc;
         SMS_STS smst;
         HLSCL hl;
 
         // for applications: LyLinkArm
         int jointsZeroPos[JOINTS_NUM]; // array to store the zero position of each joint
+        int jointsFeedbackPos[JOINTS_NUM]; // array to store the feedback position from each joint
         int jointsCurrentPos[JOINTS_NUM]; // array to store the current position of each joint
         int jointsGoalPos[JOINTS_NUM]; // array to store the goal position of each joint
+        int jointsLastPos[JOINTS_NUM]; // array to store the last position of each joint
         int jointID[JOINTS_NUM] = {SERVO_ARRAY_0, SERVO_ARRAY_1, SERVO_ARRAY_2, SERVO_ARRAY_3};
 
         // [0]ping status
@@ -50,18 +56,21 @@ class JointsCtrl {
         int servoFeedback[SERVO_FEEDBACK_NUM]; // array to store the feedback from each servo
 
         u_int8_t jointType = JOINT_TYPE_SMST; // JOINT_TYPE_SC, JOINT_TYPE_SMST, JOINT_TYPE_HL
-        u_int16_t jointSteps = 4096; // steps in one circle
+        u_int16_t jointSteps = JOINTS_SMST_MAX_POS; // steps in one circle
         u_int16_t middleSteps = jointSteps/2 - 1;
-        double jointRangeAngle = 360.0; // wiggle range in angle
+        double jointRangeAngle = JOINTS_SMST_RANGE_ANGLE;
+        double jointRangeRad = jointRangeAngle * M_PI / 180.0; // wiggle range in radian
 
     public:
         // for applications: LyLinkArm
         JointsCtrl() {
             // Initialize jointsZeroPos array
             for(int i = 0; i < JOINTS_NUM; i++) {
-                jointsZeroPos[i] = JOINTS_SC_ZERO_POS; // or any other default value
-                jointsCurrentPos[i] = JOINTS_SC_ZERO_POS; // or any other default value
-                jointsGoalPos[i] = JOINTS_SC_ZERO_POS; // or any other default value
+                jointsZeroPos[i] = middleSteps; // or any other default value
+                jointsFeedbackPos[i] = middleSteps; // or any other default value
+                jointsCurrentPos[i] = middleSteps; // or any other default value
+                jointsGoalPos[i] = middleSteps; // or any other default value
+                jointsLastPos[i] = middleSteps; // or any other default value
             }
         }
 
@@ -76,32 +85,27 @@ class JointsCtrl {
 
         void moveMiddle(u_int8_t id);
         void torqueLock(u_int8_t id, bool state);
-        void stepsCtrlSC(u_int8_t id, int pos, int time, int speed);
-        void stepsCtrlSMST(u_int8_t id, int pos, int speed, int acc);
-        void stepsCtrlHL(u_int8_t id, int pos, int speed, int acc, int currt_limit);
-        double mapDouble(double x, double in_min, double in_max, double out_min, double out_max);
-        void angleCtrlSC(u_int8_t id, int mid_pos, double angle, double speed);
-        void angleCtrlSMST(u_int8_t id, double angle, double speed, double acc);
-        void angleCtrlHL(u_int8_t id, double angle, double speed, double acc, int currt_limit);
 
+        void stepsCtrlSC(u_int8_t id, int pos, int time, int speed, bool move_trigger = true);
+        void stepsCtrlSMST(u_int8_t id, int pos, int speed, int acc, bool move_trigger = true);
+        void stepsCtrlHL(u_int8_t id, int pos, int speed, int acc, int currt_limit, bool move_trigger = true);
+        double mapDouble(double x, double in_min, double in_max, double out_min, double out_max);
+        int angleCtrlSC(u_int8_t id, int mid_pos, double angle, double speed, bool move_trigger = true);
+        int angleCtrlSMST(u_int8_t id, double angle, double speed, double acc, bool move_trigger = true);
+        int angleCtrlHL(u_int8_t id, double angle, double speed, double acc, int currt_limit, bool move_trigger = true);
+        int radCtrlSC(u_int8_t id, int mid_pos, double rad, double speed, bool move_trigger = true);
+        int radCtrlSMST(u_int8_t id, double rad, double speed, double acc, bool move_trigger = true);
+        int radCtrlHL(u_int8_t id, double rad, double speed, double acc, int currt_limit, bool move_trigger = true);
+        void moveTrigger();
+
+        // for applications: LyLinkArm
         int* getJointsZeroPosArray();
         void setJointsZeroPosArray(int values[]);
-        int* getServoFeedback();
-        void setCurrentPosZero();
+        int* getLinkArmPosSC();
+        void setCurrentSCPosMiddle();
+        void linkArmSCJointsCtrlAngle(double angles[]);
+        void linkArmSCJointsCtrlRad(double rads[]);
         
-        void angleCtrl(u_int8_t id, double angleW);
-        void radCtrl(u_int8_t id, double rad);
-        void moveTrigger();
-    
-        // SMS/ST Servo Ctrl
-        void wheelMode(int id);
-        void servoMode(int id);
-        void writePos(int id, int pos, int speed, int acc);
-        void writeSpd(int id, int speed, int acc);
-        void regWritePos(int id, int pos, int speed, int acc);
-        void regMoveTrigger();
-        void syncWritePos(int id[], int pos[], int speed[], int acc[], int len);
-        void syncWriteSpd(int id[], int speed[], int acc[], int len);
     };
 
 #endif
