@@ -6,6 +6,11 @@ void JointsCtrl::init(int baud) {
     sc.pSerial = &Serial1;
     smst.pSerial = &Serial1;
     hl.pSerial = &Serial1;
+
+    gqdmd.begin(&Serial1);
+    gqdmd.setTxEnd_T32(1000000);
+    gqdmd.setTimeOut(2);
+
     while(!Serial1) {}
 }
 
@@ -360,6 +365,14 @@ void JointsCtrl::moveTrigger() {
             hl.RegWriteAction();
             break;
     }
+}
+
+// hub motor ctrl
+void JointsCtrl::hubMotorCtrl(int spd_1, int spd_2, int spd_3, int spd_4) {
+    gqdmd.SpeedCtl(1, spd_1, 500, 600, 0);
+    gqdmd.SpeedCtl(2, spd_2, 500, 600, 0);
+    gqdmd.SpeedCtl(3, spd_3, 500, 600, 0);
+    gqdmd.SpeedCtl(4, spd_4, 500, 600, 0);
 }
 
 // for applications: LyLinkArm

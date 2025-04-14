@@ -2,6 +2,7 @@
 #define JOINTS_CTRL_H
 
 #include <SCServo.h>
+#include <GJWMotor.h>
 
 #define JOINT_TYPE_SC 0
 #define JOINT_TYPE_SMST 1
@@ -36,6 +37,7 @@ class JointsCtrl {
         SCSCL sc;
         SMS_STS smst;
         HLSCL hl;
+        GQDMD gqdmd;
 
         // for applications: LyLinkArm
         int jointsZeroPos[JOINTS_NUM]; // array to store the zero position of each joint
@@ -97,6 +99,9 @@ class JointsCtrl {
         int radCtrlSMST(u_int8_t id, double rad, double speed, double acc, bool move_trigger = true);
         int radCtrlHL(u_int8_t id, double rad, double speed, double acc, int currt_limit, bool move_trigger = true);
         void moveTrigger();
+
+        // hub motor ctrl
+        void hubMotorCtrl(int spd_1, int spd_2, int spd_3, int spd_4);
 
         // for applications: LyLinkArm
         int* getJointsZeroPosArray();
