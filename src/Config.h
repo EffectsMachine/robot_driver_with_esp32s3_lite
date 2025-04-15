@@ -89,6 +89,10 @@ static int timeOffset = 50;
 #define CMD_ANGLE_CTRL_SC 112
 
 
+// steps * 0.06 = rpm
+// {"T":180,"A":0,"B":0,"C":0,"D":0}
+// jointsCtrl.hubMotorCtrl(0, 0, 0, 0);
+#define CMD_HUB_MOTOR_CTRL 180
 
 // // {"T":150}
 // // #define 

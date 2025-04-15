@@ -69,15 +69,15 @@ void buttonBuzzer() {
 
 
 // S.BUS
-// bfs::SbusRx sbus(&Serial0, 44, 43, true);
-// bfs::SbusData sbusData;
+bfs::SbusRx sbus(&Serial0, 44, 43, true);
+bfs::SbusData sbusData;
 
 
 void setup() {
   delay(200);
-  Serial0.begin(BAUD_RATE);
+  // Serial0.begin(BAUD_RATE);
   // S.BUS
-  // sbus.Begin();
+  sbus.Begin();
   Wire.begin(IIC_SDA, IIC_SCL);
   Wire.setClock(400000);
   Serial.println("device starting...");
@@ -328,12 +328,12 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                                                jsonCmdInput["move"]);
                         break;
 
-  // case CMD_HUB_MOTOR_CTRL:
-  //                       jointsCtrl.hubMotorCtrl(jsonCmdInput["spd_1"], 
-  //                                               jsonCmdInput["spd_2"], 
-  //                                               jsonCmdInput["spd_3"], 
-  //                                               jsonCmdInput["spd_4"]);
-  //                       break;
+  case CMD_HUB_MOTOR_CTRL:
+                        jointsCtrl.hubMotorCtrl(jsonCmdInput["A"], 
+                                                jsonCmdInput["B"], 
+                                                jsonCmdInput["C"], 
+                                                jsonCmdInput["D"]);
+                        break;
   
 
 
@@ -657,32 +657,32 @@ void loop() {
   serialCtrl();
 
 
-  // if (sbus.Read()) {
-  //   /* Grab the received data */
-  //   sbusData = sbus.data();
-  //   /* Display the received data */
-  //   for (int8_t i = 0; i < sbusData.NUM_CH; i++) {
-  //     Serial.print(sbusData.ch[i]);
-  //     Serial.print("\t");
-  //   }
-  //   /* Display lost frames and failsafe data */
-  //   Serial.print(sbusData.lost_frame);
-  //   Serial.print("\t");
-  //   Serial.println(sbusData.failsafe);
+  if (sbus.Read()) {
+    /* Grab the received data */
+    sbusData = sbus.data();
+    /* Display the received data */
+    for (int8_t i = 0; i < sbusData.NUM_CH; i++) {
+      Serial.print(sbusData.ch[i]);
+      Serial.print("\t");
+    }
+    /* Display lost frames and failsafe data */
+    Serial.print(sbusData.lost_frame);
+    Serial.print("\t");
+    Serial.println(sbusData.failsafe);
 
-  //   if (sbusData.ch[4] < 300) {
-  //     spd_mode = 1;
-  //   } else if (sbusData.ch[4] == 1002) {
-  //     spd_mode = 2;
-  //   } else if (sbusData.ch[4] > 1700) {
-  //     spd_mode = 3;
-  //   }
+    if (sbusData.ch[4] < 300) {
+      spd_mode = 1;
+    } else if (sbusData.ch[4] == 1002) {
+      spd_mode = 2;
+    } else if (sbusData.ch[4] > 1700) {
+      spd_mode = 3;
+    }
 
-  //   spd_fb = round(jointsCtrl.mapDouble(sbusData.ch[2], 282, 1722, -2000 * spd_mode, 2000 * spd_mode));
-  //   spd_lr = round(jointsCtrl.mapDouble(sbusData.ch[3], 282, 1722, -2000, 2000));
+    spd_fb = round(jointsCtrl.mapDouble(sbusData.ch[2], 282, 1722, -2000 * spd_mode, 2000 * spd_mode));
+    spd_lr = round(jointsCtrl.mapDouble(sbusData.ch[3], 282, 1722, -2000, 2000));
     
-  //   jointsCtrl.hubMotorCtrl(spd_fb + spd_lr, -(-spd_fb + spd_lr), -spd_fb + spd_lr, spd_fb + spd_lr);
-  // }
+    jointsCtrl.hubMotorCtrl(spd_fb + spd_lr, -(-spd_fb + spd_lr), -spd_fb + spd_lr, spd_fb + spd_lr);
+  }
 
   
 
