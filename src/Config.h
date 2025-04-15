@@ -40,35 +40,86 @@ static int timeOffset = 50;
 
 
 // --- Command Configuration ---
-// Body Ctrl
-// {"T":101}
-#define CMD_JOINT_MIDDLE 101
-// Release Torque
-// {"T":102}
-#define CMD_RELEASE_TORQUE 102
-// single servo ctrl
-// {"T":103,"id":1,"goal":512,"time":0,"spd":0}
-#define CMD_SINGLE_SERVO_CTRL 103
-// get joints zero pos array - [Coupling function]
-// {"T":104}
-#define CMD_GET_JOINTS_ZERO 104
-// set joints zero pos array - [Coupling function]
-// {"T":105,"set":[512,512,512,512,512,512,512,512,512,512,512,512]}
-#define CMD_SET_JOINTS_ZERO 105
-// get the current pos of all servos - [Coupling function]
-// {"T":106}
-// feedback: {"T":-106,"fb":[512,512,512,512,512,512,512,512,512,512,512,512]}
-#define CMD_GET_CURRENT_POS 106
-// set the current pos as the zero pos
-// {"T":107}
-#define CMD_SET_CURRENT_POS_ZERO 107
+// Joints Ctrl
+// {"T":100,"baud":1000000}
+// jointsCtrl.setBaudRate(1000000);
+#define CMD_SET_JOINTS_BAUD 100
 
-// ctrl single joint angle
-// {"T":108,"joint":1,"angle":45}
-#define CMD_CTRL_JOINT_ANGLE 108
-// ctrl single joint radian
-// {"T":109,"joint":1,"rad":0.785}
-#define CMD_CTRL_JOINT_RAD 109
+// {"T":101,"type":1}
+// jointsCtrl.setJointType(1);
+#define CMD_SET_JOINTS_TYPE 101
+
+// {"T":102,"steps":4096,"angle":360}
+// jointsCtrl.setEncoderStepRange(4096, 360);
+#define CMD_SET_ENCODER 102
+
+// {"T":103,"id":1}
+// jointsCtrl.singleFeedBack(1);
+#define CMD_SINGLE_FEEDBACK 103
+
+// {"T":104,"id":1}
+// jointsCtrl.ping(1);
+#define CMD_PING 104
+
+// {"T":105,"old_id":1,"new_id":2}
+// jointsCtrl.changeID(1, 2);
+#define CMD_CHANGE_ID 105
+
+// {"T":106,"id":1}
+// jointsCtrl.setMiddle(1);
+#define CMD_SET_MIDDLE 106
+
+// {"T":107,"id":1}
+// jointsCtrl.moveMiddle(1);
+#define CMD_MOVE_MIDDLE 107
+
+// {"T":108,"id":1,"state":1}
+// jointsCtrl.torqueLock(1, 1);
+#define CMD_TORQUE_LOCK 108
+
+// {"T":109,"id":1,"pos":512,"time":0,"spd":0,"move":1}
+// jointsCtrl.stepsCtrlSC(1, 512, 0, 0, true);
+#define CMD_STEPS_CTRL_SC 109
+
+#define CMD_STEPS_CTRL_SMST 110
+#define CMD_STEPS_CTRL_HL 111
+
+// {"T":112,"id":1,"mid":512,"ang":10,"spd":0,"move":1}
+// jointsCtrl.angleCtrlSC(1, 512, 10, 0, true);
+#define CMD_ANGLE_CTRL_SC 112
+
+
+
+// // {"T":150}
+// // #define 
+// // {"T":101}
+// #define CMD_JOINT_MIDDLE 151
+// // Release Torque
+// // {"T":102}
+// #define CMD_RELEASE_TORQUE 102
+// // single servo ctrl
+// // {"T":103,"id":1,"goal":512,"time":0,"spd":0}
+// #define CMD_SINGLE_SERVO_CTRL 103
+// // get joints zero pos array - [Coupling function]
+// // {"T":104}
+// #define CMD_GET_JOINTS_ZERO 104
+// // set joints zero pos array - [Coupling function]
+// // {"T":105,"set":[512,512,512,512,512,512,512,512,512,512,512,512]}
+// #define CMD_SET_JOINTS_ZERO 105
+// // get the current pos of all servos - [Coupling function]
+// // {"T":106}
+// // feedback: {"T":-106,"fb":[512,512,512,512,512,512,512,512,512,512,512,512]}
+// #define CMD_GET_CURRENT_POS 106
+// // set the current pos as the zero pos
+// // {"T":107}
+// #define CMD_SET_CURRENT_POS_ZERO 107
+
+// // ctrl single joint angle
+// // {"T":108,"joint":1,"angle":45}
+// #define CMD_CTRL_JOINT_ANGLE 108
+// // ctrl single joint radian
+// // {"T":109,"joint":1,"rad":0.785}
+// #define CMD_CTRL_JOINT_RAD 109
 
 
 

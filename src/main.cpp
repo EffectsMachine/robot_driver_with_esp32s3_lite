@@ -36,6 +36,7 @@ Wireless wireless;
 bool newCmdReceived = false;
 bool breakloop = false;
 unsigned long tuneStartTime;
+int* jointFeedback;
 
 int jointsZeroPos[12];
 int jointsCurrentPos[12];
@@ -115,12 +116,7 @@ void setup() {
 
   if(!filesCtrl.checkMission("boot")) {
     filesCtrl.createMission("boot", "this is the boot mission.");
-    filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,
-                          \"ap_ssid\":\"LYgion\",
-                          \"ap_password\":\"12345678\",
-                          \"channel\":1,
-                          \"sta_ssid\":\"\",
-                          \"sta_password\":\"\"}");
+    filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
   } 
   runMission("boot", 0, 1);
 
@@ -232,67 +228,178 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   breakloop = true;
   cmdType = jsonCmdInput["T"].as<int>();
   switch(cmdType){
-	case CMD_JOINT_MIDDLE:
-                        // bodyCtrl.jointMiddle();
+  // joints ctrl
+  case CMD_SET_JOINTS_BAUD:
+                        jointsCtrl.setBaudRate(jsonCmdInput["baud"]);
                         break;
-  case CMD_RELEASE_TORQUE:
-                        // bodyCtrl.releaseTorque();
+  case CMD_SET_JOINTS_TYPE:
+                        if (jointsCtrl.setJointType(jsonCmdInput["type"])) {
+                          Serial0.println("Joint type set successfully.");
+                          Serial.println("Joint type set successfully.");
+                        } else {
+                          Serial0.println("Failed to set joint type.");
+                          Serial.println("Failed to set joint type.");
+                        }
                         break;
-  case CMD_SINGLE_SERVO_CTRL:
-                        // bodyCtrl.singleServoCtrl(jsonCmdInput["id"], 
-                        //                          jsonCmdInput["goal"], 
-                        //                          jsonCmdInput["time"], 
-                        //                          jsonCmdInput["spd"]);
+  case CMD_SET_ENCODER:
+                        if (jointsCtrl.setEncoderStepRange(jsonCmdInput["steps"], jsonCmdInput["angle"])) {
+                          Serial0.println("Encoder step range set successfully.");
+                          Serial.println("Encoder step range set successfully.");
+                        } else {
+                          Serial0.println("Failed to set encoder step range.");
+                          Serial.println("Encoder step range set successfully.");
+                        }
                         break;
-  case CMD_GET_JOINTS_ZERO:
-                        // memcpy(jointsZeroPos, bodyCtrl.getJointsZeroPosArray(), sizeof(jointsZeroPos));
-                        // for (int i = 0; i < 12; i++) {  
-                        //   Serial.print("Joint ");
-                        //   Serial.print(i);
-                        //   Serial.print(": ");
-                        //   Serial.println(jointsZeroPos[i]);
-                        // }
+  case CMD_SINGLE_FEEDBACK:
+                        jointFeedback = jointsCtrl.singleFeedBack(jsonCmdInput["id"]);
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_SINGLE_FEEDBACK;
+                        if (jointFeedback[0] == -1) {
+                          jsonFeedback["ps"] = -1;
+                          serializeJson(jsonFeedback, outputString);
+                          Serial.println(outputString);
+                          Serial0.println(outputString);
+                        } else {
+                          jsonFeedback["ps"] = jointFeedback[0];
+                          jsonFeedback["pos"] = jointFeedback[1];
+                          jsonFeedback["spd"] = jointFeedback[2];
+                          jsonFeedback["load"] = jointFeedback[3];
+                          jsonFeedback["vol"] = jointFeedback[4];
+                          jsonFeedback["temp"] = jointFeedback[5];
+                          jsonFeedback["mov"] = jointFeedback[6];
+                          jsonFeedback["curt"] = jointFeedback[7];
+                          serializeJson(jsonFeedback, outputString);
+                          Serial.println(outputString);
+                          Serial0.println(outputString);
+                        }
                         break;
-  case CMD_SET_JOINTS_ZERO:
-                        // for (int i = 0; i < 12; i++) {
-                        //   jointsZeroPos[i] = jsonCmdInput["set"][i];
-                        // }
-                        // bodyCtrl.setJointsZeroPosArray(jointsZeroPos);
+  case CMD_PING:
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_PING;
+                        if (jointsCtrl.ping(jsonCmdInput["id"])) {
+                          jsonFeedback["ps"] = 1;
+                        } else {
+                          jsonFeedback["ps"] = -1;
+                        }
+                        serializeJson(jsonFeedback, outputString);
+                        Serial.println(outputString);
+                        Serial0.println(outputString);
                         break;
-  case CMD_GET_CURRENT_POS:
-                        // memcpy(jointsCurrentPos, bodyCtrl.getServoFeedback(), sizeof(jointsCurrentPos));
-                        // jsonFeedback.clear();
-                        // jsonFeedback["T"] = - CMD_GET_CURRENT_POS;
-                        // for (int i = 0; i < 12; i++) {
-                        //   jsonFeedback["fb"][i] = jointsCurrentPos[i];
-                        // }
-                        // serializeJson(jsonFeedback, outputString);
-                        // Serial.println(outputString);
+  case CMD_CHANGE_ID:
+                        jointsCtrl.changeID(jsonCmdInput["old_id"], 
+                                            jsonCmdInput["new_id"]);
                         break;
-  case CMD_SET_CURRENT_POS_ZERO:
-                        // bodyCtrl.setCurrentPosZero();
-                        // memcpy(jointsZeroPos, bodyCtrl.getJointsZeroPosArray(), sizeof(jointsZeroPos));
-                        // jsonFeedback.clear();
-                        // jsonFeedback["T"] = CMD_SET_JOINTS_ZERO;
-                        // for (int i = 0; i < 12; i++) {  
-                        //   Serial.print("Joint ");
-                        //   Serial.print(i);
-                        //   Serial.print(": ");
-                        //   Serial.println(jointsZeroPos[i]);
-                        //   jsonFeedback["set"][i] = jointsZeroPos[i];
-                        // }
-                        // serializeJson(jsonFeedback, outputString);
-                        // Serial.println(outputString);
-                        // filesCtrl.appendStep("boot", outputString);
+  case CMD_SET_MIDDLE:
+                        if (jointsCtrl.setMiddle(jsonCmdInput["id"])) {
+                          Serial0.println("Joint middle set successfully.");
+                          Serial.println("Joint middle set successfully.");
+                        } else {
+                          Serial0.println("Failed to set joint middle.");
+                          Serial.println("Failed to set joint middle.");
+                        }
                         break;
-  case CMD_CTRL_JOINT_ANGLE:
-                        // bodyCtrl.jointAngle(jsonCmdInput["joint"], jsonCmdInput["angle"]);
-                        // bodyCtrl.moveTrigger();
+  case CMD_MOVE_MIDDLE:
+                        jointsCtrl.moveMiddle(jsonCmdInput["id"]);
                         break;
-  case CMD_CTRL_JOINT_RAD:
-                        // bodyCtrl.jointRad(jsonCmdInput["joint"], jsonCmdInput["rad"]);
-                        // bodyCtrl.moveTrigger();
+  case CMD_TORQUE_LOCK:
+                        jointsCtrl.torqueLock(jsonCmdInput["id"], 
+                                              jsonCmdInput["state"]);
                         break;
+  case CMD_STEPS_CTRL_SC:
+                        jointsCtrl.stepsCtrlSC(jsonCmdInput["id"], 
+                                               jsonCmdInput["pos"], 
+                                               jsonCmdInput["time"], 
+                                               jsonCmdInput["spd"], 
+                                               jsonCmdInput["move"]);
+                        break;
+  case CMD_STEPS_CTRL_SMST:
+                        Serial0.println("...");
+                        Serial.println("...");
+                        break;
+  case CMD_STEPS_CTRL_HL:
+                        Serial0.println("...");
+                        Serial.println("...");
+                        break;
+  case CMD_ANGLE_CTRL_SC:
+                        jointsCtrl.angleCtrlSC(jsonCmdInput["id"], 
+                                               jsonCmdInput["mid"], 
+                                               jsonCmdInput["ang"], 
+                                               jsonCmdInput["spd"], 
+                                               jsonCmdInput["move"]);
+                        break;
+
+  // case CMD_HUB_MOTOR_CTRL:
+  //                       jointsCtrl.hubMotorCtrl(jsonCmdInput["spd_1"], 
+  //                                               jsonCmdInput["spd_2"], 
+  //                                               jsonCmdInput["spd_3"], 
+  //                                               jsonCmdInput["spd_4"]);
+  //                       break;
+  
+
+
+
+
+	// case CMD_JOINT_MIDDLE:
+  //                       // bodyCtrl.jointMiddle();
+  //                       break;
+  // case CMD_RELEASE_TORQUE:
+  //                       // bodyCtrl.releaseTorque();
+  //                       break;
+  // case CMD_SINGLE_SERVO_CTRL:
+  //                       // bodyCtrl.singleServoCtrl(jsonCmdInput["id"], 
+  //                       //                          jsonCmdInput["goal"], 
+  //                       //                          jsonCmdInput["time"], 
+  //                       //                          jsonCmdInput["spd"]);
+  //                       break;
+  // case CMD_GET_JOINTS_ZERO:
+  //                       // memcpy(jointsZeroPos, bodyCtrl.getJointsZeroPosArray(), sizeof(jointsZeroPos));
+  //                       // for (int i = 0; i < 12; i++) {  
+  //                       //   Serial.print("Joint ");
+  //                       //   Serial.print(i);
+  //                       //   Serial.print(": ");
+  //                       //   Serial.println(jointsZeroPos[i]);
+  //                       // }
+  //                       break;
+  // case CMD_SET_JOINTS_ZERO:
+  //                       // for (int i = 0; i < 12; i++) {
+  //                       //   jointsZeroPos[i] = jsonCmdInput["set"][i];
+  //                       // }
+  //                       // bodyCtrl.setJointsZeroPosArray(jointsZeroPos);
+  //                       break;
+  // case CMD_GET_CURRENT_POS:
+  //                       // memcpy(jointsCurrentPos, bodyCtrl.getServoFeedback(), sizeof(jointsCurrentPos));
+  //                       // jsonFeedback.clear();
+  //                       // jsonFeedback["T"] = - CMD_GET_CURRENT_POS;
+  //                       // for (int i = 0; i < 12; i++) {
+  //                       //   jsonFeedback["fb"][i] = jointsCurrentPos[i];
+  //                       // }
+  //                       // serializeJson(jsonFeedback, outputString);
+  //                       // Serial.println(outputString);
+  //                       break;
+  // case CMD_SET_CURRENT_POS_ZERO:
+  //                       // bodyCtrl.setCurrentPosZero();
+  //                       // memcpy(jointsZeroPos, bodyCtrl.getJointsZeroPosArray(), sizeof(jointsZeroPos));
+  //                       // jsonFeedback.clear();
+  //                       // jsonFeedback["T"] = CMD_SET_JOINTS_ZERO;
+  //                       // for (int i = 0; i < 12; i++) {  
+  //                       //   Serial.print("Joint ");
+  //                       //   Serial.print(i);
+  //                       //   Serial.print(": ");
+  //                       //   Serial.println(jointsZeroPos[i]);
+  //                       //   jsonFeedback["set"][i] = jointsZeroPos[i];
+  //                       // }
+  //                       // serializeJson(jsonFeedback, outputString);
+  //                       // Serial.println(outputString);
+  //                       // filesCtrl.appendStep("boot", outputString);
+  //                       break;
+  // case CMD_CTRL_JOINT_ANGLE:
+  //                       // bodyCtrl.jointAngle(jsonCmdInput["joint"], jsonCmdInput["angle"]);
+  //                       // bodyCtrl.moveTrigger();
+  //                       break;
+  // case CMD_CTRL_JOINT_RAD:
+  //                       // bodyCtrl.jointRad(jsonCmdInput["joint"], jsonCmdInput["rad"]);
+  //                       // bodyCtrl.moveTrigger();
+  //                       break;
 
 
   // led/screen/button/buzzer ctrl
