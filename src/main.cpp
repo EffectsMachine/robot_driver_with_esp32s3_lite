@@ -38,8 +38,10 @@ bool breakloop = false;
 unsigned long tuneStartTime;
 int* jointFeedback;
 
-int jointsZeroPos[12];
-int jointsCurrentPos[12];
+int jointsZeroPos[JOINTS_NUM];
+int jointsCurrentPos[JOINTS_NUM];
+double jointsGoalBuffer[JOINTS_NUM];
+
 void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput);
 void runMission(String missionName, int intervalTime, int loopTimes);
 
@@ -69,15 +71,15 @@ void buttonBuzzer() {
 
 
 // S.BUS
-bfs::SbusRx sbus(&Serial0, 44, 43, true);
-bfs::SbusData sbusData;
+// bfs::SbusRx sbus(&Serial0, 44, 43, true);
+// bfs::SbusData sbusData;
 
 
 void setup() {
   delay(200);
-  // Serial0.begin(BAUD_RATE);
+  Serial0.begin(BAUD_RATE);
   // S.BUS
-  sbus.Begin();
+  // sbus.Begin();
   Wire.begin(IIC_SDA, IIC_SCL);
   Wire.setClock(400000);
   Serial.println("device starting...");
@@ -102,28 +104,28 @@ void setup() {
   // led.init();
   filesCtrl.init();
 
-  jointsCtrl.init(1000000);
+  jointsCtrl.init(500000);
   jointsCtrl.setJointType(JOINT_TYPE_SC);
   jointsCtrl.setEncoderStepRange(1024, 220);
   delay(1000);
   jointsCtrl.moveMiddle(254);
 
-  screenCtrl.init();
-  screenCtrl.displayText("LYgion", 0, 0, 2);
-  screenCtrl.displayText("Robotics", 0, 16, 2);
+  // screenCtrl.init();
+  // screenCtrl.displayText("LYgion", 0, 0, 2);
+  // screenCtrl.displayText("Robotics", 0, 16, 2);
 
 
 
   if(!filesCtrl.checkMission("boot")) {
     filesCtrl.createMission("boot", "this is the boot mission.");
-    filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
+    // filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
   } 
-  runMission("boot", 0, 1);
+  // runMission("boot", 0, 1);
 
   // esp-now init
   // wireless.espnowInit(false);
-  wireless.espnowInit(true);
-  wireless.setJsonCommandCallback(jsonCmdReceiveHandler);
+  // wireless.espnowInit(true);
+  // wireless.setJsonCommandCallback(jsonCmdReceiveHandler);
 
   // wireless.addMacToPeer(broadcastAddress);  
   // jsonFeedback.clear();
@@ -163,16 +165,16 @@ void setup() {
   // buttonLeft.enableEvent(event_t::longPress);
   // buttonRight.enableEvent(event_t::longPress);
 
-  buttonUp.begin();
-  buttonUp.onPress([]() {
-    Serial0.println("Button Up Pressed");
-    screenCtrl.changeSingleLine(1, "Button Up Pressed", true);
-  });
-  buttonUp.onRelease([]() {
-    Serial0.println("Button Up Released");
-    screenCtrl.changeSingleLine(1, "Button Up Released", true);
-  });
-  buttonUp.enable();
+  // buttonUp.begin();
+  // buttonUp.onPress([]() {
+  //   Serial0.println("Button Up Pressed");
+  //   screenCtrl.changeSingleLine(1, "Button Up Pressed", true);
+  // });
+  // buttonUp.onRelease([]() {
+  //   Serial0.println("Button Up Released");
+  //   screenCtrl.changeSingleLine(1, "Button Up Released", true);
+  // });
+  // buttonUp.enable();
 }
 
 
@@ -327,6 +329,75 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                                                jsonCmdInput["spd"], 
                                                jsonCmdInput["move"]);
                         break;
+  case CMD_RAD_CTRL_SC:
+                        jointsCtrl.radCtrlSC(jsonCmdInput["id"],
+                                             jsonCmdInput["mid"],
+                                             jsonCmdInput["rad"],
+                                             jsonCmdInput["spd"],
+                                             jsonCmdInput["move"]);
+                        break;
+  case CMD_MOVE_TRIGGER:
+                        jointsCtrl.moveTrigger();
+                        break;
+
+
+
+  // --- --- --- for applications: LyLinkArm --- --- ---
+  case CMD_GET_JOINTS_ZERO:
+                        memcpy(jointsZeroPos, jointsCtrl.getJointsZeroPosArray(), sizeof(jointsZeroPos));
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_GET_JOINTS_ZERO;
+                        for (int i = 0; i < JOINTS_NUM; i++) {  
+                            jsonFeedback["pos"][i] = jointsZeroPos[i];
+                        }
+                        serializeJson(jsonFeedback, outputString);
+                        Serial.println(outputString);
+                        Serial0.println(outputString);
+                        break;
+  case CMD_SET_JOINTS_ZERO:
+                        for (int i = 0; i < JOINTS_NUM; i++) {
+                            jointsZeroPos[i] = jsonCmdInput["pos"][i];
+                        }
+                        jointsCtrl.setJointsZeroPosArray(jointsZeroPos);
+                        break;
+  case CMD_GET_LINK_ARM_POS:
+                        memcpy(jointsCurrentPos, jointsCtrl.getLinkArmPosSC(), sizeof(jointsCurrentPos));
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_GET_LINK_ARM_POS;
+                        for (int i = 0; i < JOINTS_NUM; i++) {
+                            jsonFeedback["pos"][i] = jointsCurrentPos[i];
+                        }
+                        serializeJson(jsonFeedback, outputString);
+                        Serial.println(outputString);
+                        Serial0.println(outputString);
+                        break;
+  case CMD_SET_LINK_ARM_ZERO:
+                        jointsCtrl.setCurrentSCPosMiddle();
+                        memcpy(jointsCurrentPos, jointsCtrl.getLinkArmPosSC(), sizeof(jointsCurrentPos));
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = CMD_SET_JOINTS_ZERO;
+                        for (int i = 0; i < JOINTS_NUM; i++) {
+                            jsonFeedback["pos"][i] = jointsCurrentPos[i];
+                        }
+                        serializeJson(jsonFeedback, outputString);
+                        Serial.println(outputString);
+                        Serial0.println(outputString);
+                        break;
+  case CMD_LINK_ARM_SC_JOINTS_CTRL_ANGLE:
+                        for (int i = 0; i < JOINTS_NUM; i++) {
+                            jointsGoalBuffer[i] = jsonCmdInput["ang"][i];
+                        }
+                        jointsCtrl.linkArmSCJointsCtrlAngle(jointsGoalBuffer);
+                        break;
+  case CMD_LINK_ARM_SC_JOINTS_CTRL_RAD:
+                        for (int i = 0; i < JOINTS_NUM; i++) {
+                            jointsGoalBuffer[i] = jsonCmdInput["rad"][i];
+                        }
+                        jointsCtrl.linkArmSCJointsCtrlRad(jointsGoalBuffer);
+                        break;
+  
+
+
 
   case CMD_HUB_MOTOR_CTRL:
                         jointsCtrl.hubMotorCtrl(jsonCmdInput["A"], 
@@ -657,32 +728,32 @@ void loop() {
   serialCtrl();
 
 
-  if (sbus.Read()) {
-    /* Grab the received data */
-    sbusData = sbus.data();
-    /* Display the received data */
-    for (int8_t i = 0; i < sbusData.NUM_CH; i++) {
-      Serial.print(sbusData.ch[i]);
-      Serial.print("\t");
-    }
-    /* Display lost frames and failsafe data */
-    Serial.print(sbusData.lost_frame);
-    Serial.print("\t");
-    Serial.println(sbusData.failsafe);
+  // if (sbus.Read()) {
+  //   /* Grab the received data */
+  //   sbusData = sbus.data();
+  //   /* Display the received data */
+  //   for (int8_t i = 0; i < sbusData.NUM_CH; i++) {
+  //     Serial.print(sbusData.ch[i]);
+  //     Serial.print("\t");
+  //   }
+  //   /* Display lost frames and failsafe data */
+  //   Serial.print(sbusData.lost_frame);
+  //   Serial.print("\t");
+  //   Serial.println(sbusData.failsafe);
 
-    if (sbusData.ch[4] < 300) {
-      spd_mode = 1;
-    } else if (sbusData.ch[4] == 1002) {
-      spd_mode = 2;
-    } else if (sbusData.ch[4] > 1700) {
-      spd_mode = 3;
-    }
+  //   if (sbusData.ch[4] < 300) {
+  //     spd_mode = 1;
+  //   } else if (sbusData.ch[4] == 1002) {
+  //     spd_mode = 2;
+  //   } else if (sbusData.ch[4] > 1700) {
+  //     spd_mode = 3;
+  //   }
 
-    spd_fb = round(jointsCtrl.mapDouble(sbusData.ch[2], 282, 1722, -2000 * spd_mode, 2000 * spd_mode));
-    spd_lr = round(jointsCtrl.mapDouble(sbusData.ch[3], 282, 1722, -2000, 2000));
+  //   spd_fb = round(jointsCtrl.mapDouble(sbusData.ch[2], 282, 1722, -2000 * spd_mode, 2000 * spd_mode));
+  //   spd_lr = round(jointsCtrl.mapDouble(sbusData.ch[3], 282, 1722, -2000, 2000));
     
-    jointsCtrl.hubMotorCtrl(spd_fb + spd_lr, -(-spd_fb + spd_lr), -spd_fb + spd_lr, spd_fb + spd_lr);
-  }
+  //   jointsCtrl.hubMotorCtrl(spd_fb + spd_lr, -(-spd_fb + spd_lr), -spd_fb + spd_lr, spd_fb + spd_lr);
+  // }
 
   
 

@@ -100,9 +100,6 @@ class JointsCtrl {
         int radCtrlHL(u_int8_t id, double rad, double speed, double acc, int currt_limit, bool move_trigger = true);
         void moveTrigger();
 
-        // hub motor ctrl
-        void hubMotorCtrl(int spd_1, int spd_2, int spd_3, int spd_4);
-
         // for applications: LyLinkArm
         int* getJointsZeroPosArray();
         void setJointsZeroPosArray(int values[]);
@@ -110,6 +107,12 @@ class JointsCtrl {
         void setCurrentSCPosMiddle();
         void linkArmSCJointsCtrlAngle(double angles[]);
         void linkArmSCJointsCtrlRad(double rads[]);
+
+
+        // hub motor ctrl
+        void hubMotorCtrl(int spd_1, int spd_2, int spd_3, int spd_4);
+
+
         
     };
 

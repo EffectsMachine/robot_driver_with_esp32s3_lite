@@ -78,15 +78,62 @@ static int timeOffset = 50;
 #define CMD_TORQUE_LOCK 108
 
 // {"T":109,"id":1,"pos":512,"time":0,"spd":0,"move":1}
-// jointsCtrl.stepsCtrlSC(1, 512, 0, 0, true);
+// jointsCtrl.stepsCtrlSC(1, 511, 0, 0, true);
 #define CMD_STEPS_CTRL_SC 109
 
 #define CMD_STEPS_CTRL_SMST 110
 #define CMD_STEPS_CTRL_HL 111
 
 // {"T":112,"id":1,"mid":512,"ang":10,"spd":0,"move":1}
-// jointsCtrl.angleCtrlSC(1, 512, 10, 0, true);
+// jointsCtrl.angleCtrlSC(1, 511, 10, 0, true);
 #define CMD_ANGLE_CTRL_SC 112
+
+#define CMD_ANGLE_CTRL_SMST 113
+#define CMD_ANGLE_CTRL_HL 114
+
+// {"T":115,"id":1,"mid":512,"rad":0.785,"spd":0,"move":1}
+// jointsCtrl.radCtrlSC(1, 511, 0.785, 0, 1);
+#define CMD_RAD_CTRL_SC 115
+
+#define CMD_RAD_CTRL_SMST 116
+#define CMD_RAD_CTRL_HL 117
+
+// {"T":118}
+// jointsCtrl.moveTrigger();
+#define CMD_MOVE_TRIGGER 118
+
+
+// --- --- --- for applications: LyLinkArm --- --- ---
+// {"T":130}
+#define CMD_GET_JOINTS_ZERO 130
+
+// {"T":131,"pos":[512,512,512,512]}
+// example LyLinkArm
+// {"T":131,"pos":[496,514,281,514]}
+// jointsCtrl.setJointsZeroPosArray(int values[]);
+#define CMD_SET_JOINTS_ZERO 131
+
+// {"T":132}
+// jointsCtrl.getLinkArmPosSC();
+#define CMD_GET_LINK_ARM_POS 132
+
+// {"T":133}
+#define CMD_SET_LINK_ARM_ZERO 133
+
+// {"T":134,"ang":[0,0,0,0]}
+// gripper: -45-grip, +25-release 
+// jointsCtrl.linkArmSCJointsCtrlAngle(double angles[]);
+#define CMD_LINK_ARM_SC_JOINTS_CTRL_ANGLE 134
+
+// {"T":135,"rad":[0,0,0,0]}
+// jointsCtrl.linkArmSCJointsCtrlRad(double rads[]);
+#define CMD_LINK_ARM_SC_JOINTS_CTRL_RAD 135
+
+// {"T":136,"xyzg":[100,0,100,0]}
+#define CMD_XYZG_CTRL
+
+
+
 
 
 // steps * 0.06 = rpm

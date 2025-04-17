@@ -369,10 +369,10 @@ void JointsCtrl::moveTrigger() {
 
 // hub motor ctrl
 void JointsCtrl::hubMotorCtrl(int spd_1, int spd_2, int spd_3, int spd_4) {
-    gqdmd.SpeedCtl(1, spd_1, 500, 600, 0);
-    gqdmd.SpeedCtl(2, spd_2, 500, 600, 0);
-    gqdmd.SpeedCtl(3, spd_3, 500, 600, 0);
-    gqdmd.SpeedCtl(4, spd_4, 500, 600, 0);
+    gqdmd.SpeedCtl(1, spd_1, 500, 600, 200);
+    gqdmd.SpeedCtl(2, spd_2, 500, 600, 200);
+    gqdmd.SpeedCtl(3, spd_3, 500, 600, 200);
+    gqdmd.SpeedCtl(4, spd_4, 500, 600, 200);
 }
 
 // for applications: LyLinkArm
@@ -423,3 +423,4 @@ void JointsCtrl::linkArmSCJointsCtrlRad(double rads[]) {
     }
     moveTrigger();
 }
+
