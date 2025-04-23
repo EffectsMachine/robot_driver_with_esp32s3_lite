@@ -424,3 +424,52 @@ void JointsCtrl::linkArmSCJointsCtrlRad(double rads[]) {
     moveTrigger();
 }
 
+bool JointsCtrl::linkArmPlaneIK(double x, double z) {
+    // Calculate the angles for the joints based on the x and z coordinates
+    double l_af = sqrt(pow(x, 2) + pow(z, 2));
+    double theta = acos(- (pow(l_ab, 2) - pow(l_af, 2) - pow(l_bf, 2))/(2 * l_af * l_bf));
+    double lambda = atan2(z, x);
+    // output: the angle of the shoulder-front joint
+    double alpha = 1.570796326794897 - theta - lambda;
+
+    double omega = acos(-(pow(l_bf, 2) - pow(l_af, 2) - pow(l_ab, 2))/(2 * l_af * l_ab));
+    double delta = atan2(x, z);
+    // output: the radius of the eoat pitch
+    double mu = delta + omega - 1.570796326794897;
+    double l_ch = sin(mu) * l_ac;
+    double l_ci = l_ch + z;
+    double l_ah = cos(mu) * l_ac;
+    double l_ei = x + l_ef - l_ah;
+    double l_ce = sqrt(pow(l_ei, 2) + pow(l_ci, 2));
+    double psi = acos(-(pow(l_cd, 2) - pow(l_ce, 2) - pow(l_de, 2))/(2 * l_ce * l_de));
+    double epsilon = atan2(l_ci, l_ei);
+    // output: the angle of the shoulder-rear joint
+    double beta = epsilon + psi - 1.570796326794897;
+
+    if (isnan(alpha) || isnan(beta) || isnan(theta)) {
+        ik_status = false;
+        return false;
+    }
+    ik_status = true;
+
+    armIKRad[1] = alpha - l_bf_rad;
+    armIKRad[2] = 1.570796326794897 - beta;
+    armIKRad[3] = mu;
+    return true;
+}
+
+bool JointsCtrl::linkArmSpaceIK(double x, double y, double z, double g) {
+    armIKRad[0] = - atan2(y, x);
+    linkArmPlaneIK(sqrt(pow(x, 2) + pow(y, 2)) - (l_ef / 2), z);
+    if (ik_status) {
+        radCtrlSC(jointID[0], jointsZeroPos[0], armIKRad[0], 0, false);
+        radCtrlSC(jointID[1], jointsZeroPos[1], armIKRad[1], 0, false);
+        radCtrlSC(jointID[2], jointsZeroPos[2], armIKRad[2], 0, false);
+        angleCtrlSC(jointID[3], jointsZeroPos[3], g, 0, false);
+        moveTrigger();
+        return true;
+    } else {
+        return false;
+    }
+}
+

@@ -104,7 +104,8 @@ void setup() {
   // led.init();
   filesCtrl.init();
 
-  jointsCtrl.init(500000);
+  // jointsCtrl.init(500000);
+  jointsCtrl.init(1000000);
   jointsCtrl.setJointType(JOINT_TYPE_SC);
   jointsCtrl.setEncoderStepRange(1024, 220);
   delay(1000);
@@ -395,7 +396,12 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         }
                         jointsCtrl.linkArmSCJointsCtrlRad(jointsGoalBuffer);
                         break;
-  
+  case CMD_XYZG_CTRL:
+                        jointsCtrl.linkArmSpaceIK(jsonCmdInput["xyzg"][0],
+                                                  jsonCmdInput["xyzg"][1],
+                                                  jsonCmdInput["xyzg"][2],
+                                                  jsonCmdInput["xyzg"][3]);
+                        break;
 
 
 
@@ -724,9 +730,18 @@ int spd_fb = 0;
 int spd_lr = 0;
 
 void loop() {
-  // unsigned long startTime = micros(); // Record the start time in microseconds
   serialCtrl();
 
+  // unsigned long startTime = micros(); // Record the start time in microseconds
+  // jointsCtrl.linkArmPlaneIK(LINK_AB, sqrt(pow(LINK_BF_1, 2) + pow(LINK_BF_2, 2)));
+  // unsigned long endTime = micros(); // Record the end time in microseconds
+  // Serial.print("Execution time: ");
+  // Serial.print(endTime - startTime);
+  // Serial.println(" µs");
+
+  // Serial.println("--- --- ---");
+  // Serial.println(LINK_AB + (LINK_EF / 2));
+  // Serial.println(sqrt(pow(LINK_BF_1, 2) + pow(LINK_BF_2, 2)));
 
   // if (sbus.Read()) {
   //   /* Grab the received data */

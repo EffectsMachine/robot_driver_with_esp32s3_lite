@@ -3,6 +3,7 @@
 
 #include <SCServo.h>
 #include <GJWMotor.h>
+#include <math.h>
 
 #define JOINT_TYPE_SC 0
 #define JOINT_TYPE_SMST 1
@@ -32,6 +33,17 @@
 #define SERVO_ARRAY_2 33
 #define SERVO_ARRAY_3 34
 
+// LyLinkArm LT
+#define LINK_AB 224.0
+#define LINK_BC 145.0
+#define LINK_CD_1 24.0
+#define LINK_CD_2 120.0
+#define LINK_DE 120.0
+#define LINK_EF 25.0
+#define LINK_BF_1 24.0
+#define LINK_BF_2 120.0
+
+
 class JointsCtrl {
     private:
         SCSCL sc;
@@ -46,6 +58,26 @@ class JointsCtrl {
         int jointsGoalPos[JOINTS_NUM]; // array to store the goal position of each joint
         int jointsLastPos[JOINTS_NUM]; // array to store the last position of each joint
         int jointID[JOINTS_NUM] = {SERVO_ARRAY_0, SERVO_ARRAY_1, SERVO_ARRAY_2, SERVO_ARRAY_3};
+        // [0] base rad
+        // [1] shoulder-front rad
+        // [2] shoulder-rear rad
+        // [3] eoat-pitch rad
+        double armIKRad[JOINTS_NUM]; // array to store the IK radian of each joint
+        // [0] alpha
+        // [1] beta
+        // [2] mu
+        double armPlaneBuffer[3]; // array to store the plane-ik buffer
+
+        double l_ab = LINK_AB; // length of link AB
+        double l_bc = LINK_BC; // length of link BC
+        double l_ac = l_ab + l_bc; // length of link AC
+        double l_cd = sqrt(pow(LINK_CD_1, 2) + pow(LINK_CD_2, 2)); // length of link CD
+        double l_de = LINK_DE; // length of link DE
+        double l_ef = LINK_EF; // length of link EF
+        double l_bf = sqrt(pow(LINK_BF_1, 2) + pow(LINK_BF_2, 2)); // length of link BF_1
+        double l_bf_rad = atan2(LINK_BF_1, LINK_BF_2); // rad offset of link BF_1, ik output - offset = servo input
+
+        bool ik_status = false; // ik status
 
         // [0]ping status
         // [1]position
@@ -100,6 +132,9 @@ class JointsCtrl {
         int radCtrlHL(u_int8_t id, double rad, double speed, double acc, int currt_limit, bool move_trigger = true);
         void moveTrigger();
 
+        // hub motor ctrl
+        void hubMotorCtrl(int spd_1, int spd_2, int spd_3, int spd_4);
+
         // for applications: LyLinkArm
         int* getJointsZeroPosArray();
         void setJointsZeroPosArray(int values[]);
@@ -108,12 +143,8 @@ class JointsCtrl {
         void linkArmSCJointsCtrlAngle(double angles[]);
         void linkArmSCJointsCtrlRad(double rads[]);
 
-
-        // hub motor ctrl
-        void hubMotorCtrl(int spd_1, int spd_2, int spd_3, int spd_4);
-
-
-        
+        bool linkArmPlaneIK(double x, double z);
+        bool linkArmSpaceIK(double x, double y, double z, double g);
     };
 
 #endif
