@@ -6,6 +6,8 @@
 // config for the bus servo
 #define BUS_SERVO_RX 5
 #define BUS_SERVO_TX 4
+#define BUS_SERVO_BAUD_RATE 1000000
+// #define BUS_SERVO_BAUD_RATE 500000
 
 // pin for I2C
 #define I2C_SDA 32
@@ -24,19 +26,23 @@
 // Buzzer
 #define BUZZER_PIN 21
 
+// use uart0 as s.bus rx on esp32s3
+// #define UART0_AS_SBUS
+
 
 
 // --- Debug Configuration ---
-// 1: print debug info
-// 0: do not print debug info
-static int InfoPrint = 1;
+// true: print megs
+// false: do not print megs
+static bool echoMsgFlag = true;
+static bool uartMsgFlag = true;
+static bool usbMsgFlag = false;
 
 // serial baud rate
-#define BAUD_RATE 921600
+#define ESP32S3_BAUD_RATE 921600
 
 // processing time adjustment
 static int timeOffset = 50;
-
 
 
 // --- Command Configuration ---
@@ -137,48 +143,10 @@ static int timeOffset = 50;
 #define CMD_UI_ABS_CTRL 137
 
 
-
 // steps * 0.06 = rpm
 // {"T":180,"A":0,"B":0,"C":0,"D":0}
 // jointsCtrl.hubMotorCtrl(0, 0, 0, 0);
 #define CMD_HUB_MOTOR_CTRL 180
-
-// // {"T":150}
-// // #define 
-// // {"T":101}
-// #define CMD_JOINT_MIDDLE 151
-// // Release Torque
-// // {"T":102}
-// #define CMD_RELEASE_TORQUE 102
-// // single servo ctrl
-// // {"T":103,"id":1,"goal":512,"time":0,"spd":0}
-// #define CMD_SINGLE_SERVO_CTRL 103
-// // get joints zero pos array - [Coupling function]
-// // {"T":104}
-// #define CMD_GET_JOINTS_ZERO 104
-// // set joints zero pos array - [Coupling function]
-// // {"T":105,"set":[512,512,512,512,512,512,512,512,512,512,512,512]}
-// #define CMD_SET_JOINTS_ZERO 105
-// // get the current pos of all servos - [Coupling function]
-// // {"T":106}
-// // feedback: {"T":-106,"fb":[512,512,512,512,512,512,512,512,512,512,512,512]}
-// #define CMD_GET_CURRENT_POS 106
-// // set the current pos as the zero pos
-// // {"T":107}
-// #define CMD_SET_CURRENT_POS_ZERO 107
-
-// // ctrl single joint angle
-// // {"T":108,"joint":1,"angle":45}
-// #define CMD_CTRL_JOINT_ANGLE 108
-// // ctrl single joint radian
-// // {"T":109,"joint":1,"rad":0.785}
-// #define CMD_CTRL_JOINT_RAD 109
-
-
-
-// SMS/ST Servo Ctrl
-// {"T":150}
-
 
 
 // id 0 -> left LED
@@ -206,7 +174,6 @@ static int timeOffset = 50;
 // buttons
 // {"T":207,"L":0,"I0":0,"I1":0,"I2":0}
 #define CMD_BUTTONS 207
-
 
 
 // scan files
@@ -281,3 +248,10 @@ static int timeOffset = 50;
 // {"T":601}
 #define CMD_CLEAR_NVS 601
 #define CMD_RESET_BOOT_MISSION 602
+
+// get output mode
+// {"T":603}
+#define CMD_GET_MSG_OUTPUT 603
+// set output mode
+// {"T":604,"echo":1,"uart":1,"usb":1}
+#define CMD_SET_MSG_OUTPUT 604
