@@ -110,7 +110,7 @@ static int timeOffset = 50;
 // {"T":131,"pos":[512,512,512,512]}
 // example LyLinkArm
 // {"T":131,"pos":[496,514,281,514]} (LE)
-// {"T":131,"pos":[519,471,484,514]} (LY)
+// {"T":131,"pos":[519,471,484,514]} (LY-6V)
 // jointsCtrl.setJointsZeroPosArray(int values[]);
 #define CMD_SET_JOINTS_ZERO 131
 
