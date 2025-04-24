@@ -684,9 +684,6 @@ void loop() {
   // Serial.print(endTime - startTime);
   // Serial.println(" µs");
 
-  // Serial.println("--- --- ---");
-  // Serial.println(LINK_AB + (LINK_EF / 2));
-  // Serial.println(sqrt(pow(LINK_BF_1, 2) + pow(LINK_BF_2, 2)));
 #ifdef UART0_AS_SBUS
   if (sbus.Read()) {
     /* Grab the received data */
