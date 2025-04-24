@@ -41,12 +41,13 @@ int* jointFeedback;
 int jointsZeroPos[JOINTS_NUM];
 int jointsCurrentPos[JOINTS_NUM];
 double jointsGoalBuffer[JOINTS_NUM];
+double xbzgIKFeedback[JOINTS_NUM + 1];
 
 void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput);
 void runMission(String missionName, int intervalTime, int loopTimes);
 
-
-
+unsigned long startTime;
+unsigned long endTime;
 
 
 
@@ -358,7 +359,9 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   case CMD_SET_JOINTS_ZERO:
                         for (int i = 0; i < JOINTS_NUM; i++) {
                             jointsZeroPos[i] = jsonCmdInput["pos"][i];
+                            
                         }
+
                         jointsCtrl.setJointsZeroPosArray(jointsZeroPos);
                         break;
   case CMD_GET_LINK_ARM_POS:
@@ -397,11 +400,46 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         jointsCtrl.linkArmSCJointsCtrlRad(jointsGoalBuffer);
                         break;
   case CMD_XYZG_CTRL:
-                        jointsCtrl.linkArmSpaceIK(jsonCmdInput["xyzg"][0],
-                                                  jsonCmdInput["xyzg"][1],
-                                                  jsonCmdInput["xyzg"][2],
-                                                  jsonCmdInput["xyzg"][3]);
+                        if(!jointsCtrl.linkArmSpaceIK(jsonCmdInput["xyzg"][0],
+                                                      jsonCmdInput["xyzg"][1],
+                                                      jsonCmdInput["xyzg"][2],
+                                                      jsonCmdInput["xyzg"][3])) {
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_XYZG_CTRL;
+                        jsonFeedback["ik"] = -1;
+                        jsonFeedback["xyzg"] = jsonCmdInput["xyzg"];
+                        serializeJson(jsonFeedback, outputString);
+                        Serial.println(outputString);
+                        Serial0.println(outputString);
+                        }
                         break;
+  case CMD_UI_ABS_CTRL:
+                        startTime = micros(); // Record the start time in microseconds
+                        memcpy(xbzgIKFeedback, 
+                               jointsCtrl.linkArmUIIK(jsonCmdInput["rbzg"][0],
+                                                      jsonCmdInput["rbzg"][1],
+                                                      jsonCmdInput["rbzg"][2],
+                                                      jsonCmdInput["rbzg"][3]), 
+                               sizeof(jointsCurrentPos));
+                        if (xbzgIKFeedback[0] == -1) {
+                          jsonFeedback.clear();
+                          jsonFeedback["T"] = -CMD_UI_ABS_CTRL;
+                          jsonFeedback["ik"] = xbzgIKFeedback[0];
+                          for (int i = 0; i < JOINTS_NUM; i++) {
+                            jsonFeedback["xbzg"][i] = xbzgIKFeedback[i + 1];
+                          }
+                          serializeJson(jsonFeedback, outputString);
+                          Serial.println(outputString);
+                          Serial0.println(outputString);
+                        }
+                        endTime = micros(); // Record the end time in microseconds
+                        Serial.print("Execution time: ");
+                        Serial.print(endTime - startTime);
+                        Serial.println(" µs");
+                        break;
+
+
+
 
 
 
@@ -733,7 +771,7 @@ void loop() {
   serialCtrl();
 
   // unsigned long startTime = micros(); // Record the start time in microseconds
-  // jointsCtrl.linkArmPlaneIK(LINK_AB, sqrt(pow(LINK_BF_1, 2) + pow(LINK_BF_2, 2)));
+  // // jointsCtrl.linkArmPlaneIK(LINK_AB, sqrt(pow(LINK_BF_1, 2) + pow(LINK_BF_2, 2)));
   // unsigned long endTime = micros(); // Record the end time in microseconds
   // Serial.print("Execution time: ");
   // Serial.print(endTime - startTime);

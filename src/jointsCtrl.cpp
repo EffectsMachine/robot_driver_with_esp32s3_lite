@@ -473,3 +473,27 @@ bool JointsCtrl::linkArmSpaceIK(double x, double y, double z, double g) {
     }
 }
 
+double* JointsCtrl::linkArmUIIK(double x, double b, double z, double g) {
+    armIKRad[0] = b;
+    linkArmPlaneIK(x, z);
+    if (ik_status) {
+        radCtrlSC(jointID[0], jointsZeroPos[0], armIKRad[0], 0, false);
+        radCtrlSC(jointID[1], jointsZeroPos[1], armIKRad[1], 0, false);
+        radCtrlSC(jointID[2], jointsZeroPos[2], armIKRad[2], 0, false);
+        angleCtrlSC(jointID[3], jointsZeroPos[3], g, 0, false);
+        moveTrigger();
+        xbzgIK[0] = 1;
+        xbzgIK[1] = x;
+        xbzgIK[2] = b;
+        xbzgIK[3] = z;
+        xbzgIK[4] = g;
+        return xbzgIK;
+    } else {
+        xbzgIK[0] = -1;
+        xbzgIK[1] = x;
+        xbzgIK[2] = b;
+        xbzgIK[3] = z;
+        xbzgIK[4] = g;
+        return xbzgIK;
+    }
+}

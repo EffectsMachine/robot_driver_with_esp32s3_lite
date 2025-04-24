@@ -63,6 +63,7 @@ class JointsCtrl {
         // [2] shoulder-rear rad
         // [3] eoat-pitch rad
         double armIKRad[JOINTS_NUM]; // array to store the IK radian of each joint
+        double xbzgIK[JOINTS_NUM + 1]; // array to store the IK pos of UI Ctrl
         // [0] alpha
         // [1] beta
         // [2] mu
@@ -145,6 +146,7 @@ class JointsCtrl {
 
         bool linkArmPlaneIK(double x, double z);
         bool linkArmSpaceIK(double x, double y, double z, double g);
+        double* linkArmUIIK(double x, double b, double z, double g);
     };
 
 #endif

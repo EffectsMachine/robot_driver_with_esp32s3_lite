@@ -109,7 +109,7 @@ static int timeOffset = 50;
 
 // {"T":131,"pos":[512,512,512,512]}
 // example LyLinkArm
-// {"T":131,"pos":[496,514,281,514]} (LE)
+// {"T":131,"pos":[497,505,286,557]} (LE-2)
 // {"T":131,"pos":[519,471,484,514]} (LY-6V)
 // jointsCtrl.setJointsZeroPosArray(int values[]);
 #define CMD_SET_JOINTS_ZERO 131
@@ -133,7 +133,8 @@ static int timeOffset = 50;
 // {"T":136,"xyzg":[236.5,0,122.38,0]}
 #define CMD_XYZG_CTRL 136
 
-
+// {"T":137,"rbzg":[236.5,0,122.38,0]}
+#define CMD_UI_ABS_CTRL 137
 
 
 
