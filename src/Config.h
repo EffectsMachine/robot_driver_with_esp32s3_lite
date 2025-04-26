@@ -44,6 +44,8 @@ static bool usbMsgFlag = false;
 // processing time adjustment
 static int timeOffset = 50;
 
+// the max speed of the joints
+static int jointsMaxSpeed = 800;
 
 // --- Command Configuration ---
 // Joints Ctrl
@@ -137,10 +139,24 @@ static int timeOffset = 50;
 #define CMD_LINK_ARM_SC_JOINTS_CTRL_RAD 135
 
 // {"T":136,"xyzg":[236.5,0,122.38,0]}
+// jointsCtrl.linkArmSpaceIK(double x, double y, double z, double g);
 #define CMD_XYZG_CTRL 136
 
 // {"T":137,"rbzg":[236.5,0,122.38,0]}
-#define CMD_UI_ABS_CTRL 137
+// jointsCtrl.linkArmFPVIK(double r, double b, double z, double g);
+#define CMD_FPV_ABS_CTRL 137
+
+// {"T":136,"xyzg":[236.5,0,122.38,0],"spd":1}
+// jointsCtrl.smoothXYZGCtrl(double x, double y, double z, double g, double spd);
+#define CMD_SMOOTH_XYZG_CTRL 138
+
+// {"T":137,"rbzg":[236.5,0,122.38,0],"spd":1,"br":220}
+// jointsCtrl.smoothFPVAbsCtrl(double r, double b, double z, double g, double spd, double baseRate = 220.0);
+#define CMD_SMOOTH_FPV_ABS_CTRL 139
+
+// {"T":138,"spd":800}
+// jointsCtrl.setMaxJointsSpeed(800);
+#define CMD_SET_MAX_JOINTS_SPEED 140
 
 
 // steps * 0.06 = rpm

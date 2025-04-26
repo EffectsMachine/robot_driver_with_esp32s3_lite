@@ -40,7 +40,8 @@ int* jointFeedback;
 int jointsZeroPos[JOINTS_NUM];
 int jointsCurrentPos[JOINTS_NUM];
 double jointsGoalBuffer[JOINTS_NUM];
-double xbzgIKFeedback[JOINTS_NUM + 1];
+double xyzgIKFeedback[JOINTS_NUM + 1];
+double rbzgIKFeedback[JOINTS_NUM + 1];
 
 void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput);
 void runMission(String missionName, int intervalTime, int loopTimes);
@@ -404,26 +405,66 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         msg(outputString);
                         }
                         break;
-  case CMD_UI_ABS_CTRL:
-                        memcpy(xbzgIKFeedback, 
-                               jointsCtrl.linkArmUIIK(jsonCmdInput["rbzg"][0],
+  case CMD_FPV_ABS_CTRL:
+                        memcpy(rbzgIKFeedback, 
+                               jointsCtrl.linkArmFPVIK(jsonCmdInput["rbzg"][0],
                                                       jsonCmdInput["rbzg"][1],
                                                       jsonCmdInput["rbzg"][2],
                                                       jsonCmdInput["rbzg"][3]), 
-                               sizeof(jointsCurrentPos));
-                        if (xbzgIKFeedback[0] == -1) {
+                               sizeof(rbzgIKFeedback));
+                        if (rbzgIKFeedback[0] == -1) {
                           jsonFeedback.clear();
-                          jsonFeedback["T"] = -CMD_UI_ABS_CTRL;
-                          jsonFeedback["ik"] = xbzgIKFeedback[0];
+                          jsonFeedback["T"] = -CMD_FPV_ABS_CTRL;
+                          jsonFeedback["ik"] = rbzgIKFeedback[0];
                           for (int i = 0; i < JOINTS_NUM; i++) {
-                            jsonFeedback["xbzg"][i] = xbzgIKFeedback[i + 1];
+                            jsonFeedback["rbzg"][i] = rbzgIKFeedback[i + 1];
                           }
                           serializeJson(jsonFeedback, outputString);
                           msg(outputString);
                         }
                         break;
-
-
+  case CMD_SMOOTH_XYZG_CTRL:
+                        memcpy(xyzgIKFeedback, 
+                          jointsCtrl.smoothXYZGCtrl(jsonCmdInput["xyzg"][0],
+                                                    jsonCmdInput["xyzg"][1],
+                                                    jsonCmdInput["xyzg"][2],
+                                                    jsonCmdInput["xyzg"][3],
+                                                    jsonCmdInput["spd"]), 
+                          sizeof(xyzgIKFeedback));
+                        if (xyzgIKFeedback[0] == -1) {
+                          jsonFeedback.clear();
+                          jsonFeedback["T"] = -CMD_SMOOTH_XYZG_CTRL;
+                          jsonFeedback["ik"] = xyzgIKFeedback[0];
+                          for (int i = 0; i < JOINTS_NUM; i++) {
+                            jsonFeedback["xyzg"][i] = xyzgIKFeedback[i + 1];
+                          }
+                          serializeJson(jsonFeedback, outputString);
+                          msg(outputString);
+                        }
+                        break;
+  case CMD_SMOOTH_FPV_ABS_CTRL:
+                        memcpy(rbzgIKFeedback, 
+                               jointsCtrl.smoothFPVAbsCtrl(jsonCmdInput["rbzg"][0],
+                                                           jsonCmdInput["rbzg"][1],
+                                                           jsonCmdInput["rbzg"][2],
+                                                           jsonCmdInput["rbzg"][3],
+                                                           jsonCmdInput["spd"],
+                                                           jsonCmdInput["baseRate"]), 
+                               sizeof(rbzgIKFeedback));
+                        if (rbzgIKFeedback[0] == -1) {
+                          jsonFeedback.clear();
+                          jsonFeedback["T"] = -CMD_FPV_ABS_CTRL;
+                          jsonFeedback["ik"] = rbzgIKFeedback[0];
+                          for (int i = 0; i < JOINTS_NUM; i++) {
+                            jsonFeedback["rbzg"][i] = rbzgIKFeedback[i + 1];
+                          }
+                          serializeJson(jsonFeedback, outputString);
+                          msg(outputString);
+                        }
+                        break;
+  case CMD_SET_MAX_JOINTS_SPEED:
+                        jointsCtrl.setMaxJointsSpeed(jsonCmdInput["spd"]);
+                        break;
 
 
 

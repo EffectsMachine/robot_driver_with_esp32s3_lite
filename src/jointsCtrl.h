@@ -63,11 +63,11 @@ class JointsCtrl {
         // [2] shoulder-rear rad
         // [3] eoat-pitch rad
         double armIKRad[JOINTS_NUM]; // array to store the IK radian of each joint
-        double xbzgIK[JOINTS_NUM + 1]; // array to store the IK pos of UI Ctrl
-        // [0] alpha
-        // [1] beta
-        // [2] mu
-        double armPlaneBuffer[3]; // array to store the plane-ik buffer
+        double xyzgIK[JOINTS_NUM + 1]; // array to store the IK pos of each joint
+        double rbzgIK[JOINTS_NUM + 1]; // array to store the IK pos of FPV Ctrl
+        // smooth ctrl
+        double xyzgIK_last[JOINTS_NUM + 1]; // array to store the last IK pos of each joint
+        double rbzgIK_last[JOINTS_NUM + 1]; // array to store the last IK pos of FPV Ctrl
 
         double l_ab = LINK_AB; // length of link AB
         double l_bc = LINK_BC; // length of link BC
@@ -145,8 +145,16 @@ class JointsCtrl {
         void linkArmSCJointsCtrlRad(double rads[]);
 
         bool linkArmPlaneIK(double x, double z);
-        bool linkArmSpaceIK(double x, double y, double z, double g);
-        double* linkArmUIIK(double x, double b, double z, double g);
+        double* linkArmSpaceIK(double x, double y, double z, double g);
+        double* linkArmFPVIK(double x, double b, double z, double g);
+
+        double smoothCtrl(double start, double end, double rate);
+        double getSmoothStepsXYZ(double x, double y, double z);
+        double* smoothXYZGCtrl(double x, double y, double z, double g, double spd);
+        double getSmoothStepsFPV(double r, double b, double z, double baseRate);
+        double* smoothFPVAbsCtrl(double r, double b, double z, double g, double spd, double baseRate = 220.0);
+        
+        void setMaxJointsSpeed(int speed);
     };
 
 #endif

@@ -458,42 +458,122 @@ bool JointsCtrl::linkArmPlaneIK(double x, double z) {
     return true;
 }
 
-bool JointsCtrl::linkArmSpaceIK(double x, double y, double z, double g) {
+double* JointsCtrl::linkArmSpaceIK(double x, double y, double z, double g) {
     armIKRad[0] = - atan2(y, x);
     linkArmPlaneIK(sqrt(pow(x, 2) + pow(y, 2)) - (l_ef / 2), z);
     if (ik_status) {
-        radCtrlSC(jointID[0], jointsZeroPos[0], armIKRad[0], 0, false);
-        radCtrlSC(jointID[1], jointsZeroPos[1], armIKRad[1], 0, false);
-        radCtrlSC(jointID[2], jointsZeroPos[2], armIKRad[2], 0, false);
-        angleCtrlSC(jointID[3], jointsZeroPos[3], g, 0, false);
+        radCtrlSC(jointID[0], jointsZeroPos[0], armIKRad[0], jointsMaxSpeed, false);
+        radCtrlSC(jointID[1], jointsZeroPos[1], armIKRad[1], jointsMaxSpeed, false);
+        radCtrlSC(jointID[2], jointsZeroPos[2], armIKRad[2], jointsMaxSpeed, false);
+        angleCtrlSC(jointID[3], jointsZeroPos[3], g, jointsMaxSpeed, false);
         moveTrigger();
-        return true;
+        xyzgIK[0] = 1;
+        xyzgIK[1] = x;
+        xyzgIK[2] = y;
+        xyzgIK[3] = z;
+        xyzgIK[4] = g;
+        return xyzgIK;
     } else {
-        return false;
+        xyzgIK[0] = -1;
+        xyzgIK[1] = x;
+        xyzgIK[2] = y;
+        xyzgIK[3] = z;
+        xyzgIK[4] = g;
+        return xyzgIK;
     }
 }
 
-double* JointsCtrl::linkArmUIIK(double x, double b, double z, double g) {
+double* JointsCtrl::linkArmFPVIK(double x, double b, double z, double g) {
     armIKRad[0] = b;
     linkArmPlaneIK(x, z);
     if (ik_status) {
-        radCtrlSC(jointID[0], jointsZeroPos[0], armIKRad[0], 0, false);
-        radCtrlSC(jointID[1], jointsZeroPos[1], armIKRad[1], 0, false);
-        radCtrlSC(jointID[2], jointsZeroPos[2], armIKRad[2], 0, false);
-        angleCtrlSC(jointID[3], jointsZeroPos[3], g, 0, false);
+        radCtrlSC(jointID[0], jointsZeroPos[0], armIKRad[0], jointsMaxSpeed, false);
+        radCtrlSC(jointID[1], jointsZeroPos[1], armIKRad[1], jointsMaxSpeed, false);
+        radCtrlSC(jointID[2], jointsZeroPos[2], armIKRad[2], jointsMaxSpeed, false);
+        angleCtrlSC(jointID[3], jointsZeroPos[3], g, jointsMaxSpeed, false);
         moveTrigger();
-        xbzgIK[0] = 1;
-        xbzgIK[1] = x;
-        xbzgIK[2] = b;
-        xbzgIK[3] = z;
-        xbzgIK[4] = g;
-        return xbzgIK;
+        rbzgIK[0] = 1;
+        rbzgIK[1] = x;
+        rbzgIK[2] = b;
+        rbzgIK[3] = z;
+        rbzgIK[4] = g;
+        return rbzgIK;
     } else {
-        xbzgIK[0] = -1;
-        xbzgIK[1] = x;
-        xbzgIK[2] = b;
-        xbzgIK[3] = z;
-        xbzgIK[4] = g;
-        return xbzgIK;
+        rbzgIK[0] = -1;
+        rbzgIK[1] = x;
+        rbzgIK[2] = b;
+        rbzgIK[3] = z;
+        rbzgIK[4] = g;
+        return rbzgIK;
+    }
+}
+
+// ctrl the movement in a smooth way.
+// |                 ..  <-end
+// |             .    |
+// |           .    
+// |         .        |
+// |        .
+// |      .           |
+// |. . <-start
+// ----------------------
+// 0                  1 rate
+double JointsCtrl::smoothCtrl(double start, double end, double rate) {
+    double out;
+    out = (end - start)*((cos(rate*M_PI+M_PI)+1)/2) + start;
+    return out;
+}
+
+double JointsCtrl::getSmoothStepsXYZ(double x, double y, double z) {
+    double deltaPos[3] = {abs(x - xyzgIK_last[1]),
+                          abs(y - xyzgIK_last[2]),
+                          abs(z - xyzgIK_last[3])};
+    double maxVal = deltaPos[0];
+    for(int i = 0; i < (sizeof(deltaPos) / sizeof(deltaPos[0])); i++){
+      maxVal = max(deltaPos[i],maxVal);
+    }
+    return maxVal;
+}
+
+double* JointsCtrl::smoothXYZGCtrl(double x, double y, double z, double g, double spd) {
+    memcpy(xyzgIK_last, xyzgIK, sizeof(xyzgIK));
+    for (double i=0; i<=1; i+=(spd/getSmoothStepsXYZ(x, y, z))) {
+        linkArmSpaceIK(smoothCtrl(xyzgIK_last[1], x, i), 
+                       smoothCtrl(xyzgIK_last[2], y, i), 
+                       smoothCtrl(xyzgIK_last[3], z, i), 
+                       g);
+    }
+    linkArmSpaceIK(x, y, z, g);
+    memcpy(xyzgIK_last, xyzgIK, sizeof(xyzgIK));
+    return xyzgIK;
+}
+
+double JointsCtrl::getSmoothStepsFPV(double r, double b, double z, double baseRate) {
+    double deltaPos[3] = {abs(r - rbzgIK_last[1]),
+                          abs(b - rbzgIK_last[2]) * baseRate,
+                          abs(z - rbzgIK_last[3])};
+    double maxVal = deltaPos[0];
+    for(int i = 0; i < (sizeof(deltaPos) / sizeof(deltaPos[0])); i++){
+      maxVal = max(deltaPos[i],maxVal);
+    }
+    return maxVal;
+}
+
+double* JointsCtrl::smoothFPVAbsCtrl(double r, double b, double z, double g, double spd, double baseRate) {
+    memcpy(rbzgIK_last, rbzgIK, sizeof(rbzgIK));
+    for (double i=0; i<=1; i+=(spd/getSmoothStepsFPV(r, b, z, baseRate))) {
+        linkArmFPVIK(smoothCtrl(rbzgIK_last[1], r, i), 
+                     smoothCtrl(rbzgIK_last[2], b, i), 
+                     smoothCtrl(rbzgIK_last[3], z, i), 
+                     g);
+    }
+    linkArmFPVIK(r, b, z, g);
+    memcpy(rbzgIK_last, rbzgIK, sizeof(rbzgIK));
+    return rbzgIK;
+}
+
+void JointsCtrl::setMaxJointsSpeed(int speed) {
+    if (speed >= 0) {
+        jointsMaxSpeed = speed;
     }
 }
