@@ -13,7 +13,6 @@
 // #include "esp_heap_caps.h"
 
 #include "Config.h"
-// #include "RGBLight.h"
 #include "jointsCtrl.h"
 #include "FilesCtrl.h"
 #include "ScreenCtrl.h"
@@ -25,8 +24,6 @@ JsonDocument jsonFeedback;
 USBCDC USBSerial; // Declare USBSerial as an instance of USBCDC
 DeserializationError err;
 String outputString;
-// RGBLight led;
-// BodyCtrl bodyCtrl;
 JointsCtrl jointsCtrl;
 FilesCtrl filesCtrl;
 ScreenCtrl screenCtrl;
@@ -37,11 +34,15 @@ bool breakloop = false;
 unsigned long tuneStartTime;
 int* jointFeedback;
 
-int jointsZeroPos[JOINTS_NUM];
+int jointsZeroPos[JOINTS_NUM] = {519, 471, 484, 514};
 int jointsCurrentPos[JOINTS_NUM];
+double jointFBRads[JOINTS_NUM];
+int jointFBTorques[JOINTS_NUM];
 double jointsGoalBuffer[JOINTS_NUM];
 double xyzgIKFeedback[JOINTS_NUM + 1];
 double rbzgIKFeedback[JOINTS_NUM + 1];
+double xyzgIK[JOINTS_NUM + 1];
+double rbzgIK[JOINTS_NUM + 1];
 
 void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput);
 void runMission(String missionName, int intervalTime, int loopTimes);
@@ -58,6 +59,7 @@ int spd_lr = 0;
 #endif
 
 void msg(String msgStr, bool newLine = true) {
+#ifndef UART0_AS_SBUS
   if (uartMsgFlag) {
     if (newLine) {
       Serial0.println(msgStr);
@@ -72,6 +74,7 @@ void msg(String msgStr, bool newLine = true) {
       Serial.print(msgStr);
     }
   }
+#endif
 }
 
 void getMsgStatus() {
@@ -92,19 +95,35 @@ void buttonBuzzer() {
 }
 
 // --- --- --- SETUP --- --- ---
+/**
+ * @brief Setup function to initialize the device and its peripherals.
+ * 
+ * - Waits for the internal capacitors of the joints to charge.
+ * - Initializes communication interfaces (S.BUS or Serial0).
+ * - Configures I2C communication with specified pins and clock speed.
+ * - Sets up the buzzer and triggers a button buzzer action.
+ * - Initializes USB CDC communication for the ESP32-S3.
+ * - Configures and initializes joint control with specific parameters.
+ * - Optionally initializes the screen controller for display (commented out).
+ * - If file system usage is enabled, initializes the file system and checks/creates a boot mission.
+ * - If ESP-NOW is enabled, initializes wireless communication and sets up a JSON command callback.
+ */
 void setup() {
+  // Waits for the internal capacitors of the joints to charge.
+  delay(1000);
+
 #ifdef UART0_AS_SBUS
     sbus.Begin();
     msg("S.BUS mode initialized.");
 #else
     Serial0.begin(ESP32S3_BAUD_RATE);
-    msg("Serial0 initialized for normal communication.");
+    msg("UART0/S.BUS: Serial0 initialized for normal communication.");
     while (!Serial0) {}
 #endif
+  msg("Device starting...");
 
   Wire.begin(IIC_SDA, IIC_SCL);
   Wire.setClock(400000);
-  msg("device starting...");
 
   // buzzer
   pinMode(BUZZER_PIN, OUTPUT);
@@ -115,29 +134,45 @@ void setup() {
   USB.begin();
   msg("ESP32-S3 USB CDC DONE!");
 
-  // led.init();
-  filesCtrl.init();
-
   jointsCtrl.init(BUS_SERVO_BAUD_RATE);
   jointsCtrl.setJointType(JOINT_TYPE_SC);
   jointsCtrl.setEncoderStepRange(1024, 220);
-  delay(1000);
-  jointsCtrl.moveMiddle(254);
+  jointsCtrl.setJointsZeroPosArray(jointsZeroPos);
+  double maxSpeedBuffer = jointsCtrl.getMaxJointsSpeed();
+  jointsCtrl.setMaxJointsSpeed(0.1);
+  jointsCtrl.linkArmFPVIK(LINK_AB + LINK_BF_1 + LINK_EF/2, 
+                          0, 
+                          LINK_BF_2,
+                          0);
+  msg("JointsCtrl initialized.");
+  jointsCtrl.setMaxJointsSpeed(maxSpeedBuffer);
 
-  // screenCtrl.init();
-  // screenCtrl.displayText("LYgion", 0, 0, 2);
-  // screenCtrl.displayText("Robotics", 0, 16, 2);
+#ifdef USE_UI_CTRL
+  screenCtrl.init();
+  screenCtrl.displayText("LYgion", 0, 0, 2);
+  screenCtrl.displayText("Robotics", 0, 16, 2);
+  msg("ScreenCtrl initialized.");
+#else
+  msg("ScreenCtrl NOT initialized.");
+#endif
 
+#ifdef USE_FILE_SYSTEM
+  filesCtrl.init();
   if(!filesCtrl.checkMission("boot")) {
     filesCtrl.createMission("boot", "this is the boot mission.");
     // filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
   } 
   // runMission("boot", 0, 1);
+  msg("File system initialized.");
+#else
+  msg("File system NOT initialized.");
+#endif
 
-  // esp-now init
-  // wireless.espnowInit(false);
-  // wireless.espnowInit(true);
-  // wireless.setJsonCommandCallback(jsonCmdReceiveHandler);
+#ifdef USE_ESP_NOW
+  esp-now init
+  wireless.espnowInit(false);
+  wireless.espnowInit(true);
+  wireless.setJsonCommandCallback(jsonCmdReceiveHandler);
 
   // wireless.addMacToPeer(broadcastAddress);  
   // jsonFeedback.clear();
@@ -146,40 +181,13 @@ void setup() {
   // jsonFeedback["text"] = "Lygion Robotics";
   // jsonFeedback["update"] = 1;
   // wireless.sendEspNowJson(broadcastAddress, jsonFeedback);
+#else
+  msg("ESP-NOW NOT initialized.");
+#endif
 
-  // disable simple press/release events, we do not need them
-  // buttonUp.enableEvent(event_t::press,      false);
-  // buttonUp.enableEvent(event_t::release,    false);
-  // buttonDown.enableEvent(event_t::press,      false);
-  // buttonDown.enableEvent(event_t::release,    false);
-  // buttonLeft.enableEvent(event_t::press,      false);
-  // buttonLeft.enableEvent(event_t::release,    false);
-  // buttonRight.enableEvent(event_t::press,      false);
-  // buttonRight.enableEvent(event_t::release,    false);
-  // buttonOk.enableEvent(event_t::press,      false);
-  // buttonOk.enableEvent(event_t::release,    false);
-
-  // // enable clicks
-  // buttonUp.enableEvent(event_t::click);
-  // buttonDown.enableEvent(event_t::click);
-  // buttonLeft.enableEvent(event_t::click);
-  // buttonRight.enableEvent(event_t::click);
-  // buttonOk.enableEvent(event_t::click);
-
-  // // enable longpress to cycle through menu
-  // buttonLeft.enableEvent(event_t::longPress);
-  // buttonRight.enableEvent(event_t::longPress);
-
-  // buttonUp.begin();
-  // buttonUp.onPress([]() {
-  //   Serial0.println("Button Up Pressed");
-  //   screenCtrl.changeSingleLine(1, "Button Up Pressed", true);
-  // });
-  // buttonUp.onRelease([]() {
-  //   Serial0.println("Button Up Released");
-  //   screenCtrl.changeSingleLine(1, "Button Up Released", true);
-  // });
-  // buttonUp.enable();
+#ifndef USE_HUB_MOTORS
+  msg("Hub motors NOT initialized.");
+#endif
 }
 
 
@@ -393,16 +401,21 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         jointsCtrl.linkArmSCJointsCtrlRad(jointsGoalBuffer);
                         break;
   case CMD_XYZG_CTRL:
-                        if(!jointsCtrl.linkArmSpaceIK(jsonCmdInput["xyzg"][0],
-                                                      jsonCmdInput["xyzg"][1],
-                                                      jsonCmdInput["xyzg"][2],
-                                                      jsonCmdInput["xyzg"][3])) {
-                        jsonFeedback.clear();
-                        jsonFeedback["T"] = -CMD_XYZG_CTRL;
-                        jsonFeedback["ik"] = -1;
-                        jsonFeedback["xyzg"] = jsonCmdInput["xyzg"];
-                        serializeJson(jsonFeedback, outputString);
-                        msg(outputString);
+                        memcpy(xyzgIK,
+                        jointsCtrl.linkArmSpaceIK(jsonCmdInput["xyzg"][0],
+                                                  jsonCmdInput["xyzg"][1],
+                                                  jsonCmdInput["xyzg"][2],
+                                                  jsonCmdInput["xyzg"][3]),
+                        sizeof(xyzgIK));
+                        if (xyzgIK[0] == -1) {
+                          jsonFeedback.clear();
+                          jsonFeedback["T"] = -CMD_XYZG_CTRL;
+                          jsonFeedback["ik"] = xyzgIK[0];
+                          for (int i = 0; i < JOINTS_NUM; i++) {
+                            jsonFeedback["xyzg"][i] = xyzgIK[i + 1];
+                          }
+                          serializeJson(jsonFeedback, outputString);
+                          msg(outputString);
                         }
                         break;
   case CMD_FPV_ABS_CTRL:
@@ -449,7 +462,7 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                                                            jsonCmdInput["rbzg"][2],
                                                            jsonCmdInput["rbzg"][3],
                                                            jsonCmdInput["spd"],
-                                                           jsonCmdInput["baseRate"]), 
+                                                           jsonCmdInput["br"]), 
                                sizeof(rbzgIKFeedback));
                         if (rbzgIKFeedback[0] == -1) {
                           jsonFeedback.clear();
@@ -465,6 +478,55 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   case CMD_SET_MAX_JOINTS_SPEED:
                         jointsCtrl.setMaxJointsSpeed(jsonCmdInput["spd"]);
                         break;
+  case CMD_GET_JOINT_FB_RADS:
+                        memcpy(jointFBRads, jointsCtrl.getJointFBRads(), sizeof(jointFBRads));
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_GET_JOINT_FB_RADS;
+                        for (int i = 0; i < JOINTS_NUM; i++) {
+                          jsonFeedback["fb-rads"][i] = jointFBRads[i];
+                        }
+                        serializeJson(jsonFeedback, outputString);
+                        msg(outputString);
+                        break;
+  case CMD_GET_JOINT_GOAL_RADS:
+                        memcpy(jointsGoalBuffer, jointsCtrl.getJointGoalRads(), sizeof(jointsGoalBuffer));
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_GET_JOINT_GOAL_RADS;
+                        for (int i = 0; i < JOINTS_NUM; i++) {
+                          jsonFeedback["goal-rads"][i] = jointsGoalBuffer[i];
+                        }
+                        serializeJson(jsonFeedback, outputString);
+                        msg(outputString);
+                        break;
+  case CMD_GET_XYZG_IK:
+                        memcpy(xyzgIK, jointsCtrl.getXYZGIK(), sizeof(xyzgIK));
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_GET_XYZG_IK;
+                        for (int i = 0; i < JOINTS_NUM + 1; i++) {
+                          jsonFeedback["xyzg"][i] = xyzgIK[i];
+                        }
+                        serializeJson(jsonFeedback, outputString);
+                        msg(outputString);
+                        break;
+  case CMD_GET_RBZG_IK:
+                        memcpy(rbzgIK, jointsCtrl.getRBZGIK(), sizeof(rbzgIK));
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_GET_RBZG_IK;
+                        for (int i = 0; i < JOINTS_NUM + 1; i++) {
+                          jsonFeedback["rbzg"][i] = rbzgIK[i];
+                        }
+                        serializeJson(jsonFeedback, outputString);
+                        msg(outputString);
+                        break;
+  case CMD_SET_LINK_ARM_FEEDBACK_FLAG:
+                        if (jsonCmdInput["flag"] == 0) {
+                          jointsCtrl.setLinkArmFeedbackFlag(false, jsonCmdInput["hz"]);
+                        } else if (jsonCmdInput["flag"] == 1) {
+                          jointsCtrl.setLinkArmFeedbackFlag(true, jsonCmdInput["hz"]);
+                        }
+                        break;
+
+
 
 
 
@@ -475,6 +537,12 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                                                 jsonCmdInput["C"], 
                                                 jsonCmdInput["D"]);
                         break;
+
+
+
+
+
+
   case CMD_DISPLAY_SINGLE:
                         screenCtrl.changeSingleLine(jsonCmdInput["line"], 
                                                     jsonCmdInput["text"], 
@@ -754,63 +822,20 @@ void loop() {
   }
 #endif
   
-
-  // unsigned long endTime = micros(); // Record the end time in microseconds
-  // USBSerial.print("serialCtrl execution time: ");
-  // USBSerial.print(endTime - startTime);
-  // USBSerial.println(" µs");
-  
-  // uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-  // const char* message = "{\"T\":401}";
-  // wireless.sendEspNow(broadcastAddress, message);
-  // delay(1000);
-
-  // if (buttonPressFlag && !buttonState) {
-  //   switch (buttonPress) {
-  //     case BUTTON_UP:
-  //       Serial0.println("UP");
-  //       buttonState = true;
-  //       wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
-  //         "{\"T\":202,\"line\":1,\"text\":\"UP\",\"update\":4}");
-  //       break;
-  //     case BUTTON_DOWN:
-  //       Serial0.println("DOWN");
-  //       buttonState = true;
-  //       wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
-  //         "{\"T\":202,\"line\":1,\"text\":\"DOWN\",\"update\":4}");
-  //       break;
-  //     case BUTTON_LEFT:
-  //       Serial0.println("LEFT");
-  //       buttonState = true;
-  //       wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
-  //         "{\"T\":202,\"line\":1,\"text\":\"LEFT\",\"update\":4}");
-  //       break;
-  //     case BUTTON_RIGHT:
-  //       Serial0.println("RIGHT");
-  //       buttonState = true;
-  //       wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
-  //         "{\"T\":202,\"line\":1,\"text\":\"RIGHT\",\"update\":4}");
-  //       break;
-  //     case BUTTON_OK:
-  //       Serial0.println("OK");
-  //       buttonState = true;
-  //       wireless.sendEspNow("FF:FF:FF:FF:FF:FF", 
-  //         "{\"T\":202,\"line\":1,\"text\":\"OK\",\"update\":4}");
-  //       break;
-  //   }
-  //   buttonPressFlag = false;
-  // }
-
-  // interaction();
-
-  // jsonFeedback.clear();
-  // jsonFeedback["T"] = CMD_DATA_RECV_TEST;
-  // if (wireless.sendEspNowJson(broadcastAddress, jsonFeedback)) {
-  //   data_send_times++;
-  //   data_screen_test_update();
-  // }
-  // delay(3000);
-
+  static unsigned long lastFeedbackTime = 0;
+  if (jointsCtrl.linkArmFeedbackFlag && (millis() - lastFeedbackTime >= (1000 / jointsCtrl.linkArmFeedbackHz))) {
+    lastFeedbackTime = millis();
+    memcpy(jointFBRads, jointsCtrl.getJointFBRads(), sizeof(jointFBRads));
+    memcpy(jointFBTorques, jointsCtrl.getLinkArmTorqueSC(), sizeof(jointFBTorques));
+    jsonFeedback.clear();
+    jsonFeedback["T"] = -CMD_GET_JOINT_FB_RADS;
+    for (int i = 0; i < JOINTS_NUM; i++) {
+      jsonFeedback["rads"][i] = String(jointFBRads[i], 3).toDouble();
+      jsonFeedback["tors"][i] = jointFBTorques[i];
+    }
+    serializeJson(jsonFeedback, outputString);
+    msg(outputString);
+  }
 
   if (newCmdReceived) {
     jsonCmdReceiveHandler(jsonCmdReceive);

@@ -1,5 +1,5 @@
-#include "jointsCtrl.h"
 #include "Config.h"
+#include "jointsCtrl.h"
 
 void JointsCtrl::init(int baud) {
     Serial1.begin(baud, SERIAL_8N1, BUS_SERVO_RX, BUS_SERVO_TX);
@@ -7,9 +7,11 @@ void JointsCtrl::init(int baud) {
     smst.pSerial = &Serial1;
     hl.pSerial = &Serial1;
 
+#ifdef USE_HUB_MOTORS
     gqdmd.begin(&Serial1);
     gqdmd.setTxEnd_T32(1000000);
     gqdmd.setTimeOut(2);
+#endif
 
     while(!Serial1) {}
 }
@@ -369,10 +371,12 @@ void JointsCtrl::moveTrigger() {
 
 // hub motor ctrl
 void JointsCtrl::hubMotorCtrl(int spd_1, int spd_2, int spd_3, int spd_4) {
+#ifdef USE_HUB_MOTORS
     gqdmd.SpeedCtl(1, spd_1, 500, 600, 200);
     gqdmd.SpeedCtl(2, spd_2, 500, 600, 200);
     gqdmd.SpeedCtl(3, spd_3, 500, 600, 200);
     gqdmd.SpeedCtl(4, spd_4, 500, 600, 200);
+#endif
 }
 
 // for applications: LyLinkArm
@@ -391,6 +395,14 @@ int* JointsCtrl::getLinkArmPosSC() {
         jointsFeedbackPos[i] = sc.ReadPos(jointID[i]);
     }
     return jointsFeedbackPos;
+}
+
+int* JointsCtrl::getLinkArmTorqueSC() {
+    for (int i = 0; i < JOINTS_NUM; i++) {
+        int load = sc.ReadLoad(jointID[i]);
+        jointsFeedbackTorque[i] = (abs(load) < 1e-3) ? 0 : load;
+    }
+    return jointsFeedbackTorque;
 }
 
 void JointsCtrl::setCurrentSCPosMiddle() {
@@ -452,14 +464,49 @@ bool JointsCtrl::linkArmPlaneIK(double x, double z) {
     }
     ik_status = true;
 
-    armIKRad[1] = alpha - l_bf_rad;
-    armIKRad[2] = 1.570796326794897 - beta;
+    double armIKRad_1 = alpha - l_bf_rad;
+    double armIKRad_2 = 1.570796326794897 - beta;
+
+    if (armIKRad_1 >= jointMaxRads[1] || armIKRad_1 <= jointMinRads[1] ||
+        armIKRad_2 >= jointMaxRads[2] || armIKRad_2 <= jointMinRads[2] ||
+        mu >= jointMaxRads[3] || mu <= jointMinRads[3]) {
+        ik_status = false;
+        return false;
+    }
+
+    armIKRad[1] = armIKRad_1;
+    armIKRad[2] = armIKRad_2;
     armIKRad[3] = mu;
     return true;
 }
 
+// use the xyzgIK to calculate the rbzgIK.
+void JointsCtrl::spaceIK2FPVIK() {
+    rbzgIK[0] = xyzgIK[0];
+    rbzgIK[4] = xyzgIK[4];
+    rbzgIK[2] = armIKRad[0];
+    rbzgIK[1] = sqrt(pow(xyzgIK[1], 2) + pow(xyzgIK[2], 2)) - (l_ef / 2);
+    rbzgIK[3] = xyzgIK[3];
+}
+
+// use the rbzgIK to calculate the xyzgIK.
+void JointsCtrl::FPVIK2spaceIK() {
+    xyzgIK[1] = rbzgIK[1] * cos(rbzgIK[2]) - (l_ef / 2);
+    xyzgIK[2] = - rbzgIK[1] * sin(rbzgIK[2]);
+    xyzgIK[3] = rbzgIK[3];
+    xyzgIK[0] = rbzgIK[0];
+    xyzgIK[4] = rbzgIK[4];
+}
+
 double* JointsCtrl::linkArmSpaceIK(double x, double y, double z, double g) {
-    armIKRad[0] = - atan2(y, x);
+    double armIKRad_0 = atan2(-y, x);
+    if (armIKRad_0 >= jointMaxRads[1] || armIKRad_0 <= jointMinRads[1]) {
+        xyzgIK[0] = -1;
+        spaceIK2FPVIK();
+        ik_status = false;
+        return xyzgIK;
+    }
+    armIKRad[0] = armIKRad_0;
     linkArmPlaneIK(sqrt(pow(x, 2) + pow(y, 2)) - (l_ef / 2), z);
     if (ik_status) {
         radCtrlSC(jointID[0], jointsZeroPos[0], armIKRad[0], jointsMaxSpeed, false);
@@ -472,20 +519,24 @@ double* JointsCtrl::linkArmSpaceIK(double x, double y, double z, double g) {
         xyzgIK[2] = y;
         xyzgIK[3] = z;
         xyzgIK[4] = g;
+        spaceIK2FPVIK();
         return xyzgIK;
     } else {
         xyzgIK[0] = -1;
-        xyzgIK[1] = x;
-        xyzgIK[2] = y;
-        xyzgIK[3] = z;
-        xyzgIK[4] = g;
+        spaceIK2FPVIK();
         return xyzgIK;
     }
 }
 
-double* JointsCtrl::linkArmFPVIK(double x, double b, double z, double g) {
+double* JointsCtrl::linkArmFPVIK(double r, double b, double z, double g) {
+    if (b >= jointMaxRads[1] || b <= jointMinRads[1]) {
+        rbzgIK[0] = -1;
+        FPVIK2spaceIK();
+        ik_status = false;
+        return rbzgIK;
+    }
     armIKRad[0] = b;
-    linkArmPlaneIK(x, z);
+    linkArmPlaneIK(r - (l_ef / 2), z);
     if (ik_status) {
         radCtrlSC(jointID[0], jointsZeroPos[0], armIKRad[0], jointsMaxSpeed, false);
         radCtrlSC(jointID[1], jointsZeroPos[1], armIKRad[1], jointsMaxSpeed, false);
@@ -493,17 +544,15 @@ double* JointsCtrl::linkArmFPVIK(double x, double b, double z, double g) {
         angleCtrlSC(jointID[3], jointsZeroPos[3], g, jointsMaxSpeed, false);
         moveTrigger();
         rbzgIK[0] = 1;
-        rbzgIK[1] = x;
+        rbzgIK[1] = r;
         rbzgIK[2] = b;
         rbzgIK[3] = z;
         rbzgIK[4] = g;
+        FPVIK2spaceIK();
         return rbzgIK;
     } else {
         rbzgIK[0] = -1;
-        rbzgIK[1] = x;
-        rbzgIK[2] = b;
-        rbzgIK[3] = z;
-        rbzgIK[4] = g;
+        FPVIK2spaceIK();
         return rbzgIK;
     }
 }
@@ -542,6 +591,10 @@ double* JointsCtrl::smoothXYZGCtrl(double x, double y, double z, double g, doubl
                        smoothCtrl(xyzgIK_last[2], y, i), 
                        smoothCtrl(xyzgIK_last[3], z, i), 
                        g);
+        if (xyzgIK[0] == -1) {
+            memcpy(xyzgIK_last, xyzgIK, sizeof(xyzgIK));
+            return xyzgIK;
+        }
     }
     linkArmSpaceIK(x, y, z, g);
     memcpy(xyzgIK_last, xyzgIK, sizeof(xyzgIK));
@@ -566,14 +619,69 @@ double* JointsCtrl::smoothFPVAbsCtrl(double r, double b, double z, double g, dou
                      smoothCtrl(rbzgIK_last[2], b, i), 
                      smoothCtrl(rbzgIK_last[3], z, i), 
                      g);
+        if (rbzgIK[0] == -1) {
+            memcpy(rbzgIK_last, rbzgIK, sizeof(rbzgIK));
+            return rbzgIK;
+        }
     }
     linkArmFPVIK(r, b, z, g);
     memcpy(rbzgIK_last, rbzgIK, sizeof(rbzgIK));
     return rbzgIK;
 }
 
-void JointsCtrl::setMaxJointsSpeed(int speed) {
+void JointsCtrl::setMaxJointsSpeed(double speed) {
     if (speed >= 0) {
         jointsMaxSpeed = speed;
     }
+}
+
+double* JointsCtrl::getJointFBRads() {
+    static double jointRads[JOINTS_NUM];
+    getLinkArmPosSC();
+    for (int i = 0; i < JOINTS_NUM; i++) {
+        jointRads[i] = mapDouble(jointsFeedbackPos[i] - jointsZeroPos[i], 0, jointSteps, 0, jointRangeRad) * jointDirection[i];
+    }
+    return jointRads;
+}
+
+double* JointsCtrl::getJointGoalRads() {
+    return armIKRad;
+}
+
+double* JointsCtrl::getXYZGIK() {
+    return xyzgIK;
+}
+
+double* JointsCtrl::getRBZGIK() {
+    return rbzgIK;
+}
+
+void JointsCtrl::setLinkArmFeedbackFlag(bool flag, int hz) {
+    linkArmFeedbackFlag = flag;
+    linkArmFeedbackHz = hz;
+}
+
+bool JointsCtrl::linkArmPlaneFK(double alpha, double beta, double& x, double& z) {
+    // Calculate the forward kinematics based on the joint angles alpha and beta
+    double theta = 1.570796326794897 - alpha; // Recover theta from alpha
+    double lambda = 1.570796326794897 - beta; // Recover lambda from beta
+
+    // Calculate the length of l_af using the angles
+    double l_af = sqrt(pow(l_ab, 2) + pow(l_bf, 2) - 2 * l_ab * l_bf * cos(theta));
+
+    // Calculate the angle delta
+    double delta = acos((pow(l_af, 2) + pow(l_ab, 2) - pow(l_bf, 2)) / (2 * l_af * l_ab));
+
+    // Calculate the x and z coordinates
+    x = l_af * cos(lambda + delta);
+    z = l_af * sin(lambda + delta);
+
+    // Check for invalid results
+    if (isnan(x) || isnan(z)) {
+        ik_status = false;
+        return false;
+    }
+
+    ik_status = true;
+    return true;
 }

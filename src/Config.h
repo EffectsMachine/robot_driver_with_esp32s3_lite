@@ -26,26 +26,34 @@
 // Buzzer
 #define BUZZER_PIN 21
 
+// --- Functions Configuration ---
 // use uart0 as s.bus rx on esp32s3
 // #define UART0_AS_SBUS
 
+// use file system to save the data
+// #define USE_FILE_SYSTEM
 
+// use ESP-NOW
+// #define USE_ESP_NOW
+
+// use screen and button ctrl
+// #define USE_UI_CTRL
+
+// use hub-motors
+// #define USE_HUB_MOTORS
 
 // --- Debug Configuration ---
 // true: print megs
 // false: do not print megs
 static bool echoMsgFlag = true;
 static bool uartMsgFlag = true;
-static bool usbMsgFlag = false;
+static bool usbMsgFlag = true;
 
 // serial baud rate
 #define ESP32S3_BAUD_RATE 921600
 
 // processing time adjustment
 static int timeOffset = 50;
-
-// the max speed of the joints
-static int jointsMaxSpeed = 800;
 
 // --- Command Configuration ---
 // Joints Ctrl
@@ -146,17 +154,36 @@ static int jointsMaxSpeed = 800;
 // jointsCtrl.linkArmFPVIK(double r, double b, double z, double g);
 #define CMD_FPV_ABS_CTRL 137
 
-// {"T":136,"xyzg":[236.5,0,122.38,0],"spd":1}
+// {"T":138,"xyzg":[236.5,0,122.38,0],"spd":0.4}
 // jointsCtrl.smoothXYZGCtrl(double x, double y, double z, double g, double spd);
 #define CMD_SMOOTH_XYZG_CTRL 138
 
-// {"T":137,"rbzg":[236.5,0,122.38,0],"spd":1,"br":220}
-// jointsCtrl.smoothFPVAbsCtrl(double r, double b, double z, double g, double spd, double baseRate = 220.0);
+// {"T":139,"rbzg":[236.5,0,122.38,0],"spd":0.4,"br":200}
+// jointsCtrl.smoothFPVAbsCtrl(double r, double b, double z, double g, double spd, double baseRate = 150.0);
 #define CMD_SMOOTH_FPV_ABS_CTRL 139
 
-// {"T":138,"spd":800}
-// jointsCtrl.setMaxJointsSpeed(800);
+// {"T":140,"spd":1.2}
+// jointsCtrl.setMaxJointsSpeed(1.2);
 #define CMD_SET_MAX_JOINTS_SPEED 140
+
+// {"T":141}
+// jointsCtrl.getJointFBRads();
+#define CMD_GET_JOINT_FB_RADS 141
+
+// {"T":142}
+// jointsCtrl.getJointGoalRads();
+#define CMD_GET_JOINT_GOAL_RADS 142
+
+// {"T":143}
+// jointsCtrl.getXYZGIK();
+#define CMD_GET_XYZG_IK 143
+
+// {"T":144}
+// jointsCtrl.getRBZGIK();
+#define CMD_GET_RBZG_IK 144
+
+// {"T":145,"flag":0,"hz":10}
+#define CMD_SET_LINK_ARM_FEEDBACK_FLAG 145
 
 
 // steps * 0.06 = rpm

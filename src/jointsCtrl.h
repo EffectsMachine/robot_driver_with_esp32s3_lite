@@ -2,7 +2,9 @@
 #define JOINTS_CTRL_H
 
 #include <SCServo.h>
+#ifdef USE_HUB_MOTORS
 #include <GJWMotor.h>
+#endif
 #include <math.h>
 
 #define JOINT_TYPE_SC 0
@@ -49,15 +51,19 @@ class JointsCtrl {
         SCSCL sc;
         SMS_STS smst;
         HLSCL hl;
+#ifdef USE_HUB_MOTORS
         GQDMD gqdmd;
+#endif
 
         // for applications: LyLinkArm
         int jointsZeroPos[JOINTS_NUM]; // array to store the zero position of each joint
         int jointsFeedbackPos[JOINTS_NUM]; // array to store the feedback position from each joint
+        int jointsFeedbackTorque[JOINTS_NUM]; // array to store the feedback torque from each joint
         int jointsCurrentPos[JOINTS_NUM]; // array to store the current position of each joint
         int jointsGoalPos[JOINTS_NUM]; // array to store the goal position of each joint
         int jointsLastPos[JOINTS_NUM]; // array to store the last position of each joint
         int jointID[JOINTS_NUM] = {SERVO_ARRAY_0, SERVO_ARRAY_1, SERVO_ARRAY_2, SERVO_ARRAY_3};
+        int8_t jointDirection[JOINTS_NUM] = {1, 1, 1, 1}; // direction of each joint
         // [0] base rad
         // [1] shoulder-front rad
         // [2] shoulder-rear rad
@@ -80,6 +86,10 @@ class JointsCtrl {
 
         bool ik_status = false; // ik status
 
+                
+        // the max speed of the joints(in rad/s)
+        double jointsMaxSpeed = 1.2;
+        
         // [0]ping status
         // [1]position
         // [2]speed
@@ -96,6 +106,10 @@ class JointsCtrl {
         double jointRangeAngle = JOINTS_SMST_RANGE_ANGLE;
         double jointRangeRad = jointRangeAngle * M_PI / 180.0; // wiggle range in radian
 
+        double jointMaxRads[JOINTS_NUM] = {M_PI/2, M_PI/2, M_PI/2, M_PI/2}; // max rad of each joint
+        double jointMinRads[JOINTS_NUM] = {-M_PI/2, -M_PI/2, -M_PI/4, -M_PI/2}; // min rad of each joint
+
+
     public:
         // for applications: LyLinkArm
         JointsCtrl() {
@@ -108,6 +122,9 @@ class JointsCtrl {
                 jointsLastPos[i] = middleSteps; // or any other default value
             }
         }
+
+        bool linkArmFeedbackFlag = false; // link arm feedback flag
+        int linkArmFeedbackHz = 10; // link arm feedback Hz
 
         void init(int baud);
         void setBaudRate(int baud);
@@ -140,10 +157,13 @@ class JointsCtrl {
         int* getJointsZeroPosArray();
         void setJointsZeroPosArray(int values[]);
         int* getLinkArmPosSC();
+        int* getLinkArmTorqueSC();
         void setCurrentSCPosMiddle();
         void linkArmSCJointsCtrlAngle(double angles[]);
         void linkArmSCJointsCtrlRad(double rads[]);
 
+        void spaceIK2FPVIK();
+        void FPVIK2spaceIK();
         bool linkArmPlaneIK(double x, double z);
         double* linkArmSpaceIK(double x, double y, double z, double g);
         double* linkArmFPVIK(double x, double b, double z, double g);
@@ -152,9 +172,16 @@ class JointsCtrl {
         double getSmoothStepsXYZ(double x, double y, double z);
         double* smoothXYZGCtrl(double x, double y, double z, double g, double spd);
         double getSmoothStepsFPV(double r, double b, double z, double baseRate);
-        double* smoothFPVAbsCtrl(double r, double b, double z, double g, double spd, double baseRate = 220.0);
+        double* smoothFPVAbsCtrl(double r, double b, double z, double g, double spd, double baseRate = 150.0);
         
-        void setMaxJointsSpeed(int speed);
+        double* getJointFBRads();
+        double* getJointGoalRads();
+        double* getXYZGIK();
+        double* getRBZGIK();
+        void setMaxJointsSpeed(double speed);
+        double getMaxJointsSpeed() { return jointsMaxSpeed; }
+        void setLinkArmFeedbackFlag(bool flag, int hz);
+        bool linkArmPlaneFK(double alpha, double beta, double& x, double& z);
     };
 
 #endif
