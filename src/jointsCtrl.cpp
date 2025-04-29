@@ -512,7 +512,7 @@ double* JointsCtrl::linkArmSpaceIK(double x, double y, double z, double g) {
         radCtrlSC(jointID[0], jointsZeroPos[0], armIKRad[0], jointsMaxSpeed, false);
         radCtrlSC(jointID[1], jointsZeroPos[1], armIKRad[1], jointsMaxSpeed, false);
         radCtrlSC(jointID[2], jointsZeroPos[2], armIKRad[2], jointsMaxSpeed, false);
-        angleCtrlSC(jointID[3], jointsZeroPos[3], g, jointsMaxSpeed, false);
+        angleCtrlSC(jointID[3], jointsZeroPos[3], g, 0, false);
         moveTrigger();
         xyzgIK[0] = 1;
         xyzgIK[1] = x;
@@ -541,7 +541,7 @@ double* JointsCtrl::linkArmFPVIK(double r, double b, double z, double g) {
         radCtrlSC(jointID[0], jointsZeroPos[0], armIKRad[0], jointsMaxSpeed, false);
         radCtrlSC(jointID[1], jointsZeroPos[1], armIKRad[1], jointsMaxSpeed, false);
         radCtrlSC(jointID[2], jointsZeroPos[2], armIKRad[2], jointsMaxSpeed, false);
-        angleCtrlSC(jointID[3], jointsZeroPos[3], g, jointsMaxSpeed, false);
+        angleCtrlSC(jointID[3], jointsZeroPos[3], g, 0, false);
         moveTrigger();
         rbzgIK[0] = 1;
         rbzgIK[1] = r;

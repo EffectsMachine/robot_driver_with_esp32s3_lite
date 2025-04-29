@@ -6,8 +6,8 @@
 // config for the bus servo
 #define BUS_SERVO_RX 5
 #define BUS_SERVO_TX 4
-#define BUS_SERVO_BAUD_RATE 1000000
-// #define BUS_SERVO_BAUD_RATE 500000
+// #define BUS_SERVO_BAUD_RATE 1000000
+#define BUS_SERVO_BAUD_RATE 500000
 
 // pin for I2C
 #define I2C_SDA 32
@@ -126,6 +126,7 @@ static int timeOffset = 50;
 // {"T":131,"pos":[512,512,512,512]}
 // example LyLinkArm
 // {"T":131,"pos":[497,505,286,557]} (LE-2)
+// {"T":131,"pos":[494,509,292,515]} (LE-3)
 // {"T":131,"pos":[519,471,484,514]} (LY-6V)
 // jointsCtrl.setJointsZeroPosArray(int values[]);
 #define CMD_SET_JOINTS_ZERO 131
