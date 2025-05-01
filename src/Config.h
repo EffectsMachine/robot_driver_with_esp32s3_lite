@@ -6,8 +6,8 @@
 // config for the bus servo
 #define BUS_SERVO_RX 5
 #define BUS_SERVO_TX 4
-// #define BUS_SERVO_BAUD_RATE 1000000
-#define BUS_SERVO_BAUD_RATE 500000
+#define BUS_SERVO_BAUD_RATE 1000000
+// #define BUS_SERVO_BAUD_RATE 500000
 
 // pin for I2C
 #define I2C_SDA 32
@@ -28,7 +28,7 @@
 
 // --- Functions Configuration ---
 // use uart0 as s.bus rx on esp32s3
-// #define UART0_AS_SBUS
+#define UART0_AS_SBUS
 
 // use file system to save the data
 // #define USE_FILE_SYSTEM
@@ -40,7 +40,11 @@
 // #define USE_UI_CTRL
 
 // use hub-motors
-// #define USE_HUB_MOTORS
+#define USE_HUB_MOTORS
+
+// use robotic arm
+// #define USE_ROBOTIC_ARM
+
 
 // --- Debug Configuration ---
 // true: print megs

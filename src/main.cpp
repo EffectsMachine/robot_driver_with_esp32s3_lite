@@ -53,9 +53,6 @@ unsigned long endTime;
 #ifdef UART0_AS_SBUS
 bfs::SbusRx sbus(&Serial0, 44, 43, true);
 bfs::SbusData sbusData;
-int spd_mode = 1; // 1,2,3
-int spd_fb = 0;
-int spd_lr = 0;
 #endif
 
 void msg(String msgStr, bool newLine = true) {
@@ -807,21 +804,29 @@ void loop() {
     Serial.print("\t");
     Serial.println(sbusData.failsafe);
 
+    float speed_limit = 1.0;
     if (sbusData.ch[4] < 300) {
       spd_mode = 1;
+      speed_limit = 0.33;
     } else if (sbusData.ch[4] == 1002) {
       spd_mode = 2;
+      speed_limit = 0.66;
     } else if (sbusData.ch[4] > 1700) {
       spd_mode = 3;
+      speed_limit = 1.0;
     }
 
-    spd_fb = round(jointsCtrl.mapDouble(sbusData.ch[2], 282, 1722, -2000 * spd_mode, 2000 * spd_mode));
-    spd_lr = round(jointsCtrl.mapDouble(sbusData.ch[3], 282, 1722, -2000, 2000));
-    
-    jointsCtrl.hubMotorCtrl(spd_fb + spd_lr, -(-spd_fb + spd_lr), -spd_fb + spd_lr, spd_fb + spd_lr);
+    float speed_input = constrain((sbusData.ch[2] - 992.0)/720.0, -1.0, 1.0);
+    float turn_input = - constrain((sbusData.ch[3] - 992.0)/720.0, -1.0, 1.0);
+
+    float left_speed = (speed_input - turn_input) * speed_limit * 6000.0;
+    float right_speed = (speed_input + turn_input) * speed_limit * 6000.0;
+
+    jointsCtrl.hubMotorCtrl(left_speed, -(right_speed), -right_speed, left_speed);
   }
 #endif
-  
+
+#ifdef USE_ROBOTIC_ARM
   static unsigned long lastFeedbackTime = 0;
   if (jointsCtrl.linkArmFeedbackFlag && (millis() - lastFeedbackTime >= (1000 / jointsCtrl.linkArmFeedbackHz))) {
     lastFeedbackTime = millis();
@@ -842,5 +847,6 @@ void loop() {
     newCmdReceived = false;
     jsonCmdReceive.clear();
   }
+#endif
 }
 
