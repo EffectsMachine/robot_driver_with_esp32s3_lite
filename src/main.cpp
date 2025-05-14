@@ -114,7 +114,7 @@ void setup() {
     msg("S.BUS mode initialized.");
 #else
     Serial0.begin(ESP32S3_BAUD_RATE);
-    msg("UART0/S.BUS: Serial0 initialized for normal communication.");
+    msg("Serial0 initialized for normal communication.");
     while (!Serial0) {}
 #endif
   msg("Device starting...");
@@ -135,6 +135,7 @@ void setup() {
   jointsCtrl.setJointType(JOINT_TYPE_SC);
   jointsCtrl.setEncoderStepRange(1024, 220);
   jointsCtrl.setJointsZeroPosArray(jointsZeroPos);
+#ifdef USE_ROBOTIC_ARM
   double maxSpeedBuffer = jointsCtrl.getMaxJointsSpeed();
   jointsCtrl.setMaxJointsSpeed(0.1);
   jointsCtrl.linkArmFPVIK(LINK_AB + LINK_BF_1 + LINK_EF/2, 
@@ -143,6 +144,7 @@ void setup() {
                           0);
   msg("JointsCtrl initialized.");
   jointsCtrl.setMaxJointsSpeed(maxSpeedBuffer);
+#endif
 
 #ifdef USE_UI_CTRL
   screenCtrl.init();
@@ -157,27 +159,19 @@ void setup() {
   filesCtrl.init();
   if(!filesCtrl.checkMission("boot")) {
     filesCtrl.createMission("boot", "this is the boot mission.");
-    // filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
+    filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
   } 
-  // runMission("boot", 0, 1);
+  runMission("boot", 0, 1);
   msg("File system initialized.");
 #else
   msg("File system NOT initialized.");
 #endif
 
 #ifdef USE_ESP_NOW
-  esp-now init
   wireless.espnowInit(false);
   wireless.espnowInit(true);
   wireless.setJsonCommandCallback(jsonCmdReceiveHandler);
-
-  // wireless.addMacToPeer(broadcastAddress);  
-  // jsonFeedback.clear();
-  // jsonFeedback["T"] = CMD_DISPLAY_SINGLE;
-  // jsonFeedback["line"] = 1;
-  // jsonFeedback["text"] = "Lygion Robotics";
-  // jsonFeedback["update"] = 1;
-  // wireless.sendEspNowJson(broadcastAddress, jsonFeedback);
+  msg("ESP-NOW initialized.");
 #else
   msg("ESP-NOW NOT initialized.");
 #endif
@@ -245,7 +239,6 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   breakloop = false;
   cmdType = jsonCmdInput["T"].as<int>();
   switch(cmdType){
-  // joints ctrl
   case CMD_SET_JOINTS_BAUD:
                         jointsCtrl.setBaudRate(jsonCmdInput["baud"]);
                         break;
@@ -783,13 +776,6 @@ void serialCtrl() {
 void loop() {
   serialCtrl();
 
-  // unsigned long startTime = micros(); // Record the start time in microseconds
-  // // jointsCtrl.linkArmPlaneIK(LINK_AB, sqrt(pow(LINK_BF_1, 2) + pow(LINK_BF_2, 2)));
-  // unsigned long endTime = micros(); // Record the end time in microseconds
-  // Serial.print("Execution time: ");
-  // Serial.print(endTime - startTime);
-  // Serial.println(" µs");
-
 #ifdef UART0_AS_SBUS
   if (sbus.Read()) {
     /* Grab the received data */
@@ -815,9 +801,6 @@ void loop() {
 
     float speed_input = constrain((sbusData.ch[2] - 992.0)/720.0, -1.0, 1.0);
     float turn_input = - constrain((sbusData.ch[3] - 992.0)/720.0, -1.0, 1.0);
-
-    // float left_speed = (speed_input - turn_input) * speed_limit * 6000.0;
-    // float right_speed = (speed_input + turn_input) * speed_limit * 6000.0;
 
     float left_speed = (speed_input) * speed_limit * 6000.0 - (turn_input * 0.33 * 6000.0);
     float right_speed = (speed_input) * speed_limit * 6000.0 + (turn_input * 0.33 * 6000.0);

@@ -1,3 +1,22 @@
+// === Select Devive Type ===
+// === Only One Device Type Can Be Selected ===
+#define DEV_TYPE_RD_LITE
+// #define DEV_TYPE_LINKARM_LT
+// #define DEV_TYPE_SBUS_UGV_A
+
+// --- Auto Conrfiguration ---
+#ifdef DEV_TYPE_LINKARM_LT
+#define USE_ROBOTIC_ARM
+#define BUS_SERVO_BAUD_RATE 500000
+#else
+#define BUS_SERVO_BAUD_RATE 1000000
+#endif
+
+#ifdef DEV_TYPE_SBUS_UGV_A
+#define UART0_AS_SBUS
+#define USE_HUB_MOTORS
+#endif
+
 // --- PIN Configuration ---
 // config for the RGB LED
 #define RGB_PIN 26
@@ -6,8 +25,6 @@
 // config for the bus servo
 #define BUS_SERVO_RX 5
 #define BUS_SERVO_TX 4
-#define BUS_SERVO_BAUD_RATE 1000000
-// #define BUS_SERVO_BAUD_RATE 500000
 
 // pin for I2C
 #define I2C_SDA 32
@@ -27,9 +44,6 @@
 #define BUZZER_PIN 21
 
 // --- Functions Configuration ---
-// use uart0 as s.bus rx on esp32s3
-#define UART0_AS_SBUS
-
 // use file system to save the data
 // #define USE_FILE_SYSTEM
 
@@ -38,12 +52,6 @@
 
 // use screen and button ctrl
 // #define USE_UI_CTRL
-
-// use hub-motors
-#define USE_HUB_MOTORS
-
-// use robotic arm
-// #define USE_ROBOTIC_ARM
 
 
 // --- Debug Configuration ---
