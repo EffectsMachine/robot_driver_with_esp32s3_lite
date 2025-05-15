@@ -10,25 +10,29 @@
 #include "USBCDC.h"
 #include "tusb.h"
 
-// #include "esp_heap_caps.h"
 
 #include "Config.h"
 #include "jointsCtrl.h"
 #include "FilesCtrl.h"
 #include "ScreenCtrl.h"
 #include "Wireless.h"
-#include "button.h"
+
+
 
 JsonDocument jsonCmdReceive;
 JsonDocument jsonFeedback;
-USBCDC USBSerial; // Declare USBSerial as an instance of USBCDC
+/*
+Declare USBSerial as an instance of USBCDC
+Serial is used for USB CDC communication
+Serial0 is used for UART communication
+*/
+USBCDC USBSerial;
 DeserializationError err;
 String outputString;
 JointsCtrl jointsCtrl;
 FilesCtrl filesCtrl;
 ScreenCtrl screenCtrl;
 Wireless wireless;
-// MuiPlusPlus menu;
 bool newCmdReceived = false;
 bool breakloop = false;
 unsigned long tuneStartTime;
@@ -73,6 +77,7 @@ void msg(String msgStr, bool newLine = true) {
   }
 #endif
 }
+#include "buttonUI.h"
 
 void getMsgStatus() {
   jsonFeedback.clear();
@@ -91,7 +96,7 @@ void buttonBuzzer() {
   digitalWrite(BUZZER_PIN, HIGH);
 }
 
-// --- --- --- SETUP --- --- ---
+
 /**
  * @brief Setup function to initialize the device and its peripherals.
  * 
@@ -106,7 +111,9 @@ void buttonBuzzer() {
  * - If ESP-NOW is enabled, initializes wireless communication and sets up a JSON command callback.
  */
 void setup() {
-  // Waits for the internal capacitors of the joints to charge.
+  /*
+  Waits for the internal capacitors of the joints to charge.
+  */
   delay(1000);
 
 #ifdef UART0_AS_SBUS
@@ -123,8 +130,10 @@ void setup() {
   Wire.setClock(400000);
 
   // buzzer
-  pinMode(BUZZER_PIN, OUTPUT);
-  buttonBuzzer();
+  // pinMode(BUZZER_PIN, OUTPUT);
+  // buttonBuzzer();
+
+
 
   // fake args, it will be ignored by the USB stack, default baudrate is 12Mbps
   USBSerial.begin(ESP32S3_BAUD_RATE);
@@ -179,8 +188,24 @@ void setup() {
 #ifndef USE_HUB_MOTORS
   msg("Hub motors NOT initialized.");
 #endif
-}
 
+  // buttonUI
+  // initButtons();
+  ESP_ERROR_CHECK(esp_event_handler_instance_register(EBTN_EVENTS,
+                        ESP_EVENT_ANY_ID,
+                        // this lambda will simply translate loop events into btn_callback_t callback function
+                        [](void* handler_args, esp_event_base_t base, int32_t id, void* event_data){
+                            menu.handleEvent(ESPButton::int2event_t(id), reinterpret_cast<EventMsg*>(event_data));
+                        }, 
+                        NULL, NULL)
+            );
+  
+  /*
+  Assign button events to menu actions
+  must be after wifi function
+  */
+  menu_init_RD();
+}
 
 
 bool runStep(String missionName, int step) {
@@ -713,7 +738,6 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
 }
 
 
-
 // USB CDC receive callback
 void tud_cdc_rx_cb(uint8_t itf) {
   static String receivedData;
@@ -745,7 +769,6 @@ void tud_cdc_rx_cb(uint8_t itf) {
 }
 
 
-
 void serialCtrl() {
   static String receivedData;
 
@@ -772,6 +795,7 @@ void serialCtrl() {
     }
   }
 }
+
 
 void loop() {
   serialCtrl();

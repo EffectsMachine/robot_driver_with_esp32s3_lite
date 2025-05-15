@@ -5,6 +5,10 @@
 // #define DEV_TYPE_SBUS_UGV_A
 
 // --- Auto Conrfiguration ---
+#ifdef DEV_TYPE_RD_LITE
+#define USE_HUB_MOTORS
+#endif
+
 #ifdef DEV_TYPE_LINKARM_LT
 #define USE_ROBOTIC_ARM
 #define BUS_SERVO_BAUD_RATE 500000
@@ -45,14 +49,18 @@
 
 // --- Functions Configuration ---
 // use file system to save the data
-// #define USE_FILE_SYSTEM
+#define USE_FILE_SYSTEM
 
 // use ESP-NOW
 // #define USE_ESP_NOW
 
 // use screen and button ctrl
-// #define USE_UI_CTRL
+#define USE_UI_CTRL
 
+// #define BUS_SERVO_BAUD_RATE 1000000
+// #define USE_ROBOTIC_ARM
+// #define UART0_AS_SBUS
+// #define USE_HUB_MOTORS
 
 // --- Debug Configuration ---
 // true: print megs
