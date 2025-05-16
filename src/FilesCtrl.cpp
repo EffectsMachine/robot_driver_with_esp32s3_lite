@@ -22,6 +22,22 @@ void FilesCtrl::init() {
         } else {
             Serial.println("LittleFS.begin() failed");
             Serial0.println("LittleFS.begin() failed");
+            Serial.println("LittleFS.begin() failed. Formatting...");
+            Serial0.println("LittleFS.begin() failed. Formatting...");
+            if (LittleFS.format()) {
+                Serial.println("Flash formatted successfully.");
+                Serial0.println("Flash formatted successfully.");
+                if (LittleFS.begin()) {
+                  Serial.println("LittleFS initialized successfully after formatting.");
+                  Serial0.println("LittleFS initialized successfully after formatting.");
+                } else {
+                  Serial.println("LittleFS initialization failed after formatting.");
+                  Serial0.println("LittleFS initialization failed after formatting.");
+                }
+            } else {
+                Serial.println("Flash formatting failed.");
+                Serial0.println("Flash formatting failed.");
+            }
         }
         flashStatus = true;
     }

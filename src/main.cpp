@@ -10,14 +10,11 @@
 #include "USBCDC.h"
 #include "tusb.h"
 
-
 #include "Config.h"
 #include "jointsCtrl.h"
 #include "FilesCtrl.h"
 #include "ScreenCtrl.h"
 #include "Wireless.h"
-
-
 
 JsonDocument jsonCmdReceive;
 JsonDocument jsonFeedback;
@@ -33,6 +30,9 @@ JointsCtrl jointsCtrl;
 FilesCtrl filesCtrl;
 ScreenCtrl screenCtrl;
 Wireless wireless;
+
+#include "buttonUI.h"
+
 bool newCmdReceived = false;
 bool breakloop = false;
 unsigned long tuneStartTime;
@@ -77,7 +77,7 @@ void msg(String msgStr, bool newLine = true) {
   }
 #endif
 }
-#include "buttonUI.h"
+
 
 void getMsgStatus() {
   jsonFeedback.clear();
@@ -115,6 +115,7 @@ void setup() {
   Waits for the internal capacitors of the joints to charge.
   */
   delay(1000);
+  // delay(5000);
 
 #ifdef UART0_AS_SBUS
     sbus.Begin();
@@ -130,8 +131,8 @@ void setup() {
   Wire.setClock(400000);
 
   // buzzer
-  // pinMode(BUZZER_PIN, OUTPUT);
-  // buttonBuzzer();
+  pinMode(BUZZER_PIN, OUTPUT);
+  buttonBuzzer();
 
 
 
@@ -169,7 +170,10 @@ void setup() {
   if(!filesCtrl.checkMission("boot")) {
     filesCtrl.createMission("boot", "this is the boot mission.");
     filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
-  } 
+    msg("creat New mission: boot");
+  } else {
+    msg("boot mission already exists.");
+  }
   runMission("boot", 0, 1);
   msg("File system initialized.");
 #else
@@ -190,15 +194,7 @@ void setup() {
 #endif
 
   // buttonUI
-  // initButtons();
-  ESP_ERROR_CHECK(esp_event_handler_instance_register(EBTN_EVENTS,
-                        ESP_EVENT_ANY_ID,
-                        // this lambda will simply translate loop events into btn_callback_t callback function
-                        [](void* handler_args, esp_event_base_t base, int32_t id, void* event_data){
-                            menu.handleEvent(ESPButton::int2event_t(id), reinterpret_cast<EventMsg*>(event_data));
-                        }, 
-                        NULL, NULL)
-            );
+
   
   /*
   Assign button events to menu actions
@@ -823,8 +819,8 @@ void loop() {
       speed_limit = 1.0;
     }
 
-    float speed_input = constrain((sbusData.ch[2] - 992.0)/720.0, -1.0, 1.0);
-    float turn_input = - constrain((sbusData.ch[3] - 992.0)/720.0, -1.0, 1.0);
+    float speed_input = constrain(float(sbusData.ch[2] - SBUS_MID)/SBUS_RAN, -1.0, 1.0);
+    float turn_input = - constrain(float(sbusData.ch[3] - SBUS_MID)/SBUS_RAN, -1.0, 1.0);
 
     float left_speed = (speed_input) * speed_limit * 6000.0 - (turn_input * 0.33 * 6000.0);
     float right_speed = (speed_input) * speed_limit * 6000.0 + (turn_input * 0.33 * 6000.0);

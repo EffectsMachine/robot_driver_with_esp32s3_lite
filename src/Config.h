@@ -19,6 +19,10 @@
 #ifdef DEV_TYPE_SBUS_UGV_A
 #define UART0_AS_SBUS
 #define USE_HUB_MOTORS
+#define SBUS_MAX 1722.0
+#define SBUS_MIN 282.0
+#define SBUS_MID 1002.0
+#define SBUS_RAN 720.0
 #endif
 
 // --- PIN Configuration ---
@@ -52,7 +56,7 @@
 #define USE_FILE_SYSTEM
 
 // use ESP-NOW
-// #define USE_ESP_NOW
+#define USE_ESP_NOW
 
 // use screen and button ctrl
 #define USE_UI_CTRL
