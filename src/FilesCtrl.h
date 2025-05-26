@@ -23,6 +23,7 @@ public:
     String readStep(String missionName, int stepNum);
     void deleteMission(String missionName);
     bool checkMission(String missionName);
+    bool checkStepByType(String missionName, int cmdType);
     bool checkReplaceStep(String missionName, String jsonCmd);
     String findCmdByType(String missionName, int cmdType);
 };

@@ -102,7 +102,11 @@ bool Wireless::setWifiMode(int mode, String ap_ssid, String ap_password, int wif
     } else if (mode == WIFI_MODE_AP_STA) {
         WiFi.mode(WIFI_AP_STA);
         wifiMode = WIFI_MODE_AP_STA;
-        setAP(ap_ssid.c_str(), ap_password.c_str(), wifiChannel);
+        // setAP(ap_ssid.c_str(), ap_password.c_str(), wifiChannel);
+        bool result = WiFi.softAP(ap_ssid.c_str(), ap_password.c_str(), wifiChannel);
+        Serial.println(result ? "AP started!" : "AP start failed!");
+        Serial.print("AP IP address: ");
+        Serial.println(WiFi.softAPIP());
         if(setSTA(sta_ssid.c_str(), sta_password.c_str())) {
             return true;
         } else {

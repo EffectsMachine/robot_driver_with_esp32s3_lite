@@ -173,6 +173,14 @@ void setup() {
     msg("creat New mission: boot");
   } else {
     msg("boot mission already exists.");
+    if (filesCtrl.checkStepByType("boot", CMD_SET_WIFI_MODE)) {
+      Serial.println("Already set wifi mode.");
+      Serial0.println("Already set wifi mode.");
+    } else {
+      filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"WAVEGO\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
+      Serial.println("Haven't set wifi mode yet. Appending to boot mission.");
+      Serial0.println("Haven't set wifi mode yet. Appending to boot mission.");
+    }
   }
   runMission("boot", 0, 1);
   msg("File system initialized.");
@@ -182,7 +190,7 @@ void setup() {
 
 #ifdef USE_ESP_NOW
   wireless.espnowInit(false);
-  wireless.espnowInit(true);
+  // wireless.espnowInit(true);
   wireless.setJsonCommandCallback(jsonCmdReceiveHandler);
   msg("ESP-NOW initialized.");
 #else
