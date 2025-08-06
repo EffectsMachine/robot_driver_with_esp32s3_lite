@@ -833,7 +833,7 @@ void loop() {
     float left_speed = (speed_input) * speed_limit * 6000.0 - (turn_input * 0.33 * 6000.0);
     float right_speed = (speed_input) * speed_limit * 6000.0 + (turn_input * 0.33 * 6000.0);
 
-    jointsCtrl.hubMotorCtrl(left_speed, -(right_speed), -right_speed, left_speed);
+    jointsCtrl.hubMotorCtrl(left_speed, (right_speed), right_speed, left_speed);
   }
 #endif
 

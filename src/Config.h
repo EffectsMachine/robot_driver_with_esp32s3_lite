@@ -1,8 +1,8 @@
 // === Select Devive Type ===
 // === Only One Device Type Can Be Selected ===
 // #define DEV_TYPE_RD_LITE
-#define DEV_TYPE_LINKARM_LT
-// #define DEV_TYPE_SBUS_UGV_A
+// #define DEV_TYPE_LINKARM_LT
+#define DEV_TYPE_SBUS_UGV_A
 
 // --- Auto Conrfiguration ---
 #ifdef DEV_TYPE_RD_LITE
@@ -80,6 +80,78 @@ static bool usbMsgFlag = true;
 static int timeOffset = 50;
 
 // --- Command Configuration ---
+// WEB interface
+// {"T":10,"baud":1000000}
+// jointsCtrl.setBaudRate(1000000);
+#define CMD_SET_JOINTS_BAUD 10
+
+
+
+/// --- --- --- < ST/SM Servo > --- --- ---
+// {"T":11,"id":1,"pos":2047,"spd":0,"acc":0}
+// jointsCtrl.stepsCtrlSMST(u_int8_t id, int pos, int speed, int acc, bool move_trigger = true);
+#define CMD_STSM_CTRL 11
+
+// {"T":12,"id":1}
+// jointsCtrl.setMiddleSTSM(u_int8_t id);
+#define CMD_STSM_SET_MIDDLE 12
+
+// {"T":13,"old_id":1,"new_id":2}
+// jointsCtrl.changeIDSTSM(u_int8_t old_id, u_int8_t new_id);
+#define CMD_STSM_CHANGE_ID 13
+
+// {"T":14,"id":1,"state":1}
+// jointsCtrl.torqueLockSMST(u_int8_t id, bool state);
+#define CMD_STSM_TORQUE_LOCK 14
+
+// {"T":15,"id":1}
+// jointsCtrl.feedbackSTSM(u_int8_t id, bool state);
+#define CMD_STSM_FEEDBACK 15
+
+
+
+/// --- --- --- < HL Servo > --- --- ---
+// {"T":21,"id":1,"pos":2047,"spd":0,"acc":0}
+// jointsCtrl.stepsCtrlHL(u_int8_t id, int pos, int speed, int acc, bool move_trigger = true);
+#define CMD_HL_CTRL 21
+
+// {"T":22,"id":1}
+// jointsCtrl.setMiddleHL(u_int8_t id);
+#define CMD_HL_SET_MIDDLE 22
+
+// {"T":23,"old_id":1,"new_id":2}
+// jointsCtrl.changeIDHL(u_int8_t old_id, u_int8_t new_id);
+#define CMD_HL_CHANGE_ID 23
+
+// {"T":24,"id":1,"state":1}
+// jointsCtrl.torqueLockHL(u_int8_t id, bool state);
+#define CMD_HL_TORQUE_LOCK 24
+
+// {"T":25,"id":1}
+// jointsCtrl.feedbackHL(u_int8_t id, bool state);
+#define CMD_HL_FEEDBACK 25
+
+
+
+/// --- --- --- < SC Servo > --- --- ---
+// {"T":31,"id":1,"pos":511,"spd":0,"acc":0}
+// jointsCtrl.stepsCtrlSC(u_int8_t id, int pos, int speed, int acc, bool move_trigger = true);
+#define CMD_HL_CTRL 31
+
+// {"T":33,"old_id":1,"new_id":2}
+// jointsCtrl.changeIDSC(u_int8_t old_id, u_int8_t new_id);
+#define CMD_HL_CHANGE_ID 33
+
+// {"T":34,"id":1,"state":1}
+// jointsCtrl.torqueLockSC(u_int8_t id, bool state);
+#define CMD_HL_TORQUE_LOCK 34
+
+// {"T":35,"id":1}
+// jointsCtrl.feedbackSC(u_int8_t id, bool state);
+#define CMD_HL_FEEDBACK 35
+
+
+
 // Joints Ctrl
 // {"T":100,"baud":1000000}
 // jointsCtrl.setBaudRate(1000000);

@@ -131,16 +131,30 @@ class JointsCtrl {
         bool setJointType(u_int8_t type);
         bool setEncoderStepRange(u_int16_t steps, double angle);
         int* singleFeedBack(u_int8_t id);
+        int* feedBackSTSM(u_int8_t id);
+        int* feedBackHL(u_int8_t id);
+        int* feedBackSC(u_int8_t id);
+
         bool ping(u_int8_t id);
         bool changeID(u_int8_t old_id, u_int8_t new_id);
+        bool changeIDSTSM(u_int8_t old_id, u_int8_t new_id);
+        bool changeIDHL(u_int8_t old_id, u_int8_t new_id);
+        bool changeIDSC(u_int8_t old_id, u_int8_t new_id);
         bool setMiddle(u_int8_t id); // sc servo can not setMiddle pos
+        bool setMiddleSTSM(u_int8_t id);
+        bool setMiddleHL(u_int8_t id);
+        bool setMiddleSC(u_int8_t id);
 
         void moveMiddle(u_int8_t id);
         void torqueLock(u_int8_t id, bool state);
+        void torqueLockSMST(u_int8_t id, bool state);
+        void torqueLockHL(u_int8_t id, bool state);
+        void torqueLockSC(u_int8_t id, bool state);
 
         void stepsCtrlSC(u_int8_t id, int pos, int time, int speed, bool move_trigger = true);
         void stepsCtrlSMST(u_int8_t id, int pos, int speed, int acc, bool move_trigger = true);
         void stepsCtrlHL(u_int8_t id, int pos, int speed, int acc, int currt_limit, bool move_trigger = true);
+        
         double mapDouble(double x, double in_min, double in_max, double out_min, double out_max);
         int angleCtrlSC(u_int8_t id, int mid_pos, double angle, double speed, bool move_trigger = true);
         int angleCtrlSMST(u_int8_t id, double angle, double speed, double acc, bool move_trigger = true);

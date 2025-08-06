@@ -126,34 +126,170 @@ int* JointsCtrl::singleFeedBack(u_int8_t id) {
     return feedback;
 }
 
+int* JointsCtrl::feedbackSTSM(u_int8_t id) {
+    // Get feedback from servo
+    // [0]ping status
+    // [1]position
+    // [2]speed
+    // [3]load
+    // [4]voltage
+    // [5]temperature
+    // [6]moving
+    // [7]current
+
+    static int feedback[SERVO_FEEDBACK_NUM];
+    smst.FeedBack(id);
+    if (smst.getLastError()) {
+        feedback[FB_PING] = -1;
+        return feedback;
+        break;
+    }
+    feedback[FB_PING] = 1;
+    feedback[FB_POS] = smst.ReadPos(-1);
+    feedback[FB_SPD] = smst.ReadSpeed(-1);
+    feedback[FB_LOAD] = smst.ReadLoad(-1);
+    feedback[FB_VOLT] = smst.ReadVoltage(-1);
+    feedback[FB_TEMP] = smst.ReadTemper(-1);
+    feedback[FB_MOVE] = smst.ReadMove(-1);
+    feedback[FB_CURT] = smst.ReadCurrent(-1);
+
+    return feedback;
+}
+
+int* JointsCtrl::feedbackHL(u_int8_t id) {
+    // Get feedback from servo
+    // [0]ping status
+    // [1]position
+    // [2]speed
+    // [3]load
+    // [4]voltage
+    // [5]temperature
+    // [6]moving
+    // [7]current
+
+    static int feedback[SERVO_FEEDBACK_NUM];
+    hl.FeedBack(id);
+    if (hl.getLastError()) {
+        feedback[FB_PING] = -1;
+        return feedback;
+        break;
+    }
+    feedback[FB_PING] = 1;
+    feedback[FB_POS] = hl.ReadPos(-1);
+    feedback[FB_SPD] = hl.ReadSpeed(-1);
+    feedback[FB_LOAD] = hl.ReadLoad(-1);
+    feedback[FB_VOLT] = hl.ReadVoltage(-1);
+    feedback[FB_TEMP] = hl.ReadTemper(-1);
+    feedback[FB_MOVE] = hl.ReadMove(-1);
+    feedback[FB_CURT] = hl.ReadCurrent(-1);
+
+    return feedback;
+}
+
+int* JointsCtrl::feedbackSC(u_int8_t id) {
+    // Get feedback from servo
+    // [0]ping status
+    // [1]position
+    // [2]speed
+    // [3]load
+    // [4]voltage
+    // [5]temperature
+    // [6]moving
+    // [7]current
+
+    static int feedback[SERVO_FEEDBACK_NUM];
+    sc.FeedBack(id);
+    if (sc.getLastError()) {
+        feedback[FB_PING] = -1;
+        return feedback;
+        break;
+    }
+    feedback[FB_PING] = 1;
+    feedback[FB_POS] = sc.ReadPos(-1);
+    feedback[FB_SPD] = sc.ReadSpeed(-1);
+    feedback[FB_LOAD] = sc.ReadLoad(-1);
+    feedback[FB_VOLT] = sc.ReadVoltage(-1);
+    feedback[FB_TEMP] = sc.ReadTemper(-1);
+    feedback[FB_MOVE] = sc.ReadMove(-1);
+    feedback[FB_CURT] = sc.ReadCurrent(-1);
+
+    return feedback;
+}
+
+
+bool JointsCtrl::pingSTSM(u_int8_t id) {
+    smst.Ping(id);
+    if (smst.getLastError()) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+bool JointsCtrl::pingHL(u_int8_t id) {
+    hl.Ping(id);
+    if (hl.getLastError()) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+bool JointsCtrl::pingSC(u_int8_t id) {
+    sc.Ping(id);
+    if (sc.getLastError()) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 bool JointsCtrl::ping(u_int8_t id) {
     switch (jointType) {
         case JOINT_TYPE_SC:
-            sc.Ping(id);
-            if (sc.getLastError()) {
-                return false;
-            } else {
-                return true;
-            }
+            pingSC(id);
             break;
         case JOINT_TYPE_SMST:
-            smst.Ping(id);
-            if (smst.getLastError()) {
-                return false;
-            } else {
-                return true;
-            }
+            pingSTSM(id);
             break;
         case JOINT_TYPE_HL:
-            hl.Ping(id);
-            if (hl.getLastError()) {
-                return false;
-            } else {
-                return true;
-            }
+            pingHL(id);
             break;
     }
     return false;
+}
+
+bool JointsCtrl::changeIDSTSM(u_int8_t old_id, u_int8_t new_id) {
+    if (!pingSTSM(old_id)) {
+        return false;
+    } else {
+        smst.unLockEprom(old_id);
+        smst.writeByte(old_id, SMS_STS_ID, new_id);
+        smst.LockEprom(new_id);
+        return true;
+    }
+}
+
+bool JointsCtrl::changeIDHL(u_int8_t old_id, u_int8_t new_id) {
+    if (!ping(old_id)) {
+        return false;
+    } else {
+        hl.unLockEprom(old_id);
+        hl.writeByte(old_id, SMS_STS_ID, new_id); // change address
+        hl.LockEprom(new_id);
+        return true;
+    }
+}
+
+bool JointsCtrl::changeIDSC(u_int8_t old_id, u_int8_t new_id) {
+    if (!pingSC(old_id)) {
+        return false;
+    } else {
+        sc.unLockEprom(old_id);
+        sc.writeByte(old_id, SCSCL_ID, new_id);  // change address
+        sc.LockEprom(new_id);
+        return true;
+    }
 }
 
 bool JointsCtrl::changeID(u_int8_t old_id, u_int8_t new_id) {
@@ -192,26 +328,34 @@ bool JointsCtrl::changeID(u_int8_t old_id, u_int8_t new_id) {
     return false;
 }
 
+bool JointsCtrl::setMiddleSTSM(u_int8_t id) {
+    if (!pingSTSM(id)) {
+        return false;
+    } else {
+        smst.CalibrationOfs(id);
+        return true;
+    }
+}
+
+bool JointsCtrl::setMiddleHL(u_int8_t id) {
+    if (!ping(id)) {
+        return false;
+    } else {
+        hl.CalibrationOfs(id);
+        return true;
+    }
+}
+
 bool JointsCtrl::setMiddle(u_int8_t id) {
     switch (jointType) {
         case JOINT_TYPE_SC:
             return false;
             break;
         case JOINT_TYPE_SMST:
-            if (!ping(id)) {
-                return false;
-            } else {
-                smst.CalibrationOfs(id);
-                return true;
-            }
+            return setMiddleSTSM(id);
             break;
         case JOINT_TYPE_HL:
-            if (!ping(id)) {
-                return false;
-            } else {
-                hl.CalibrationOfs(id);
-                return true;
-            }
+            return setMiddleHL(id);
             break;
     }
     return false;
