@@ -259,6 +259,7 @@ bool JointsCtrl::ping(u_int8_t id) {
     return false;
 }
 
+
 bool JointsCtrl::changeIDSTSM(u_int8_t old_id, u_int8_t new_id) {
     if (!pingSTSM(old_id)) {
         return false;
@@ -271,7 +272,7 @@ bool JointsCtrl::changeIDSTSM(u_int8_t old_id, u_int8_t new_id) {
 }
 
 bool JointsCtrl::changeIDHL(u_int8_t old_id, u_int8_t new_id) {
-    if (!ping(old_id)) {
+    if (!pingHL(old_id)) {
         return false;
     } else {
         hl.unLockEprom(old_id);
@@ -295,38 +296,33 @@ bool JointsCtrl::changeIDSC(u_int8_t old_id, u_int8_t new_id) {
 bool JointsCtrl::changeID(u_int8_t old_id, u_int8_t new_id) {
     switch (jointType) {
         case JOINT_TYPE_SC:
-            if (!ping(old_id)) {
+            if (!pingSC(old_id)) {
                 return false;
             } else {
-                sc.unLockEprom(old_id);
-                sc.writeByte(old_id, SCSCL_ID, new_id); // change address
-                sc.LockEprom(new_id);
+                changeIDSC(old_id, new_id);
                 return true;
             }
             break;
         case JOINT_TYPE_SMST:
-            if (!ping(old_id)) {
+            if (!pingSTSM(old_id)) {
                 return false;
             } else {
-                smst.unLockEprom(old_id);
-                smst.writeByte(old_id, SMS_STS_ID, new_id);
-                smst.LockEprom(new_id);
+                changeIDSTSM(old_id, new_id);
                 return true;
             }
             break;
         case JOINT_TYPE_HL:
-            if (!ping(old_id)) {
+            if (!pingHL(old_id)) {
                 return false;
             } else {
-                hl.unLockEprom(old_id);
-                hl.writeByte(old_id, SMS_STS_ID, new_id); // change address
-                hl.LockEprom(new_id);
+                changeIDHL(old_id, new_id);
                 return true;
             }
             break;
     }
     return false;
 }
+
 
 bool JointsCtrl::setMiddleSTSM(u_int8_t id) {
     if (!pingSTSM(id)) {
@@ -361,6 +357,7 @@ bool JointsCtrl::setMiddle(u_int8_t id) {
     return false;
 }
 
+
 void JointsCtrl::moveMiddle(u_int8_t id) {
     switch (jointType) {
         case JOINT_TYPE_SC:
@@ -375,28 +372,41 @@ void JointsCtrl::moveMiddle(u_int8_t id) {
     }
 }
 
+
+void JointsCtrl::torqueLockSTSM(u_int8_t id, bool state) {
+    if (state) {
+        smst.EnableTorque(id, 1);
+    } else {
+        smst.EnableTorque(id, 0);
+    }
+}
+
+void JointsCtrl::torqueLockHL(u_int8_t id, bool state) {
+    if (state) {
+        hl.EnableTorque(id, 1);
+    } else {
+        hl.EnableTorque(id, 0);
+    }
+}
+
+void JointsCtrl::torqueLockSC(u_int8_t id, bool state) {
+    if (state) {
+        sc.EnableTorque(id, 1);
+    } else {
+        sc.EnableTorque(id, 0);
+    }
+}
+
 void JointsCtrl::torqueLock(u_int8_t id, bool state) {
     switch (jointType) {
         case JOINT_TYPE_SC:
-            if (state) {
-                sc.EnableTorque(id, 1);
-            } else {
-                sc.EnableTorque(id, 0);
-            }
+            torqueLockSC(id, state);
             break;
         case JOINT_TYPE_SMST:
-            if (state) {
-                smst.EnableTorque(id, 1);
-            } else {
-                smst.EnableTorque(id, 0);
-            }
+            torqueLockSTSM(id, state);
             break;
         case JOINT_TYPE_HL:
-            if (state) {
-                hl.EnableTorque(id, 1);
-            } else {
-                hl.EnableTorque(id, 0);
-            }
+            torqueLockHL(id, state);
             break;
     }
 }
