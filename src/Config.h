@@ -83,7 +83,7 @@ static int timeOffset = 50;
 // WEB interface
 // {"T":10,"baud":1000000}
 // jointsCtrl.setBaudRate(1000000);
-#define CMD_SET_JOINTS_BAUD 10
+#define CMD_WEB_SET_JOINTS_BAUD 10
 
 
 
@@ -136,19 +136,19 @@ static int timeOffset = 50;
 /// --- --- --- < SC Servo > --- --- ---
 // {"T":31,"id":1,"pos":511,"spd":0,"acc":0}
 // jointsCtrl.stepsCtrlSC(u_int8_t id, int pos, int speed, int acc, bool move_trigger = true);
-#define CMD_HL_CTRL 31
+#define CMD_SC_CTRL 31
 
 // {"T":33,"old_id":1,"new_id":2}
 // jointsCtrl.changeIDSC(u_int8_t old_id, u_int8_t new_id);
-#define CMD_HL_CHANGE_ID 33
+#define CMD_SC_CHANGE_ID 33
 
 // {"T":34,"id":1,"state":1}
 // jointsCtrl.torqueLockSC(u_int8_t id, bool state);
-#define CMD_HL_TORQUE_LOCK 34
+#define CMD_SC_TORQUE_LOCK 34
 
 // {"T":35,"id":1}
 // jointsCtrl.feedbackSC(u_int8_t id, bool state);
-#define CMD_HL_FEEDBACK 35
+#define CMD_SC_FEEDBACK 35
 
 
 

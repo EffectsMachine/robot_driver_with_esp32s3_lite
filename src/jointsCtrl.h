@@ -131,11 +131,14 @@ class JointsCtrl {
         bool setJointType(u_int8_t type);
         bool setEncoderStepRange(u_int16_t steps, double angle);
 
-        int* feedBackSTSM(u_int8_t id);
-        int* feedBackHL(u_int8_t id);
-        int* feedBackSC(u_int8_t id);
+        int* feedbackSTSM(u_int8_t id);
+        int* feedbackHL(u_int8_t id);
+        int* feedbackSC(u_int8_t id);
         int* singleFeedBack(u_int8_t id);
 
+        bool pingSTSM(u_int8_t id);
+        bool pingHL(u_int8_t id);
+        bool pingSC(u_int8_t id);
         bool ping(u_int8_t id);
 
         bool changeIDSTSM(u_int8_t old_id, u_int8_t new_id);
@@ -150,7 +153,7 @@ class JointsCtrl {
 
         void moveMiddle(u_int8_t id);
 
-        void torqueLockSMST(u_int8_t id, bool state);
+        void torqueLockSTSM(u_int8_t id, bool state);
         void torqueLockHL(u_int8_t id, bool state);
         void torqueLockSC(u_int8_t id, bool state);
         void torqueLock(u_int8_t id, bool state);

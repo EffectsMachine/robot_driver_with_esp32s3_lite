@@ -18,8 +18,6 @@ void JointsCtrl::init(int baud) {
 
 void JointsCtrl::setBaudRate(int baud) {
     Serial1.updateBaudRate(baud);
-    // sc.updateBaudRate(baud);
-    // sms_sts.updateBaudRate(baud);
 }
 
 bool JointsCtrl::setJointType(u_int8_t type) {
@@ -142,7 +140,6 @@ int* JointsCtrl::feedbackSTSM(u_int8_t id) {
     if (smst.getLastError()) {
         feedback[FB_PING] = -1;
         return feedback;
-        break;
     }
     feedback[FB_PING] = 1;
     feedback[FB_POS] = smst.ReadPos(-1);
@@ -172,7 +169,6 @@ int* JointsCtrl::feedbackHL(u_int8_t id) {
     if (hl.getLastError()) {
         feedback[FB_PING] = -1;
         return feedback;
-        break;
     }
     feedback[FB_PING] = 1;
     feedback[FB_POS] = hl.ReadPos(-1);
@@ -202,7 +198,6 @@ int* JointsCtrl::feedbackSC(u_int8_t id) {
     if (sc.getLastError()) {
         feedback[FB_PING] = -1;
         return feedback;
-        break;
     }
     feedback[FB_PING] = 1;
     feedback[FB_POS] = sc.ReadPos(-1);
