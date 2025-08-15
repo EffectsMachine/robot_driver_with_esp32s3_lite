@@ -1,8 +1,8 @@
 // === Select Devive Type ===
 // === Only One Device Type Can Be Selected ===
-// #define DEV_TYPE_RD_LITE
+#define DEV_TYPE_RD_LITE
 // #define DEV_TYPE_LINKARM_LT
-#define DEV_TYPE_SBUS_UGV_A
+// #define DEV_TYPE_SBUS_UGV_A
 
 // --- Auto Conrfiguration ---
 #ifdef DEV_TYPE_RD_LITE
@@ -134,7 +134,7 @@ static int timeOffset = 50;
 
 
 /// --- --- --- < SC Servo > --- --- ---
-// {"T":31,"id":1,"pos":511,"spd":0,"acc":0}
+// {"T":31,"id":1,"pos":511,"time":0,"spd":0}
 // jointsCtrl.stepsCtrlSC(u_int8_t id, int pos, int speed, int acc, bool move_trigger = true);
 #define CMD_SC_CTRL 31
 

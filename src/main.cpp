@@ -4,7 +4,6 @@
 #include <ArduinoJson.h>
 #include <Wire.h>
 #include <nvs_flash.h>
-#include <MuiPlusPlus.hpp>
 #include "sbus.h"
 #include "USB.h"
 #include "USBCDC.h"
@@ -23,7 +22,7 @@ Declare USBSerial as an instance of USBCDC
 Serial is used for USB CDC communication
 Serial0 is used for UART communication
 */
-USBCDC USBSerial;
+// USBCDC USBSerial;
 DeserializationError err;
 String outputString;
 JointsCtrl jointsCtrl;
@@ -131,8 +130,8 @@ void setup() {
   Wire.setClock(400000);
 
   // buzzer
-  pinMode(BUZZER_PIN, OUTPUT);
-  buttonBuzzer();
+  // pinMode(BUZZER_PIN, OUTPUT);
+  // buttonBuzzer();
 
 
 
@@ -177,7 +176,7 @@ void setup() {
       Serial.println("Already set wifi mode.");
       Serial0.println("Already set wifi mode.");
     } else {
-      filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"WAVEGO\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
+      filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
       Serial.println("Haven't set wifi mode yet. Appending to boot mission.");
       Serial0.println("Haven't set wifi mode yet. Appending to boot mission.");
     }
@@ -202,13 +201,17 @@ void setup() {
 #endif
 
   // buttonUI
-
-  
   /*
   Assign button events to menu actions
   must be after wifi function
   */
   menu_init_RD();
+
+  screenCtrl.clearDisplay();
+  String line_1 = "AP:" + wireless.getAPIP();
+  String line_2 = "STA:" + wireless.getSTAIP();
+  screenCtrl.changeSingleLine(1, line_1, 0);
+  screenCtrl.changeSingleLine(2, line_2, 1);
 }
 
 
@@ -268,6 +271,129 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   breakloop = false;
   cmdType = jsonCmdInput["T"].as<int>();
   switch(cmdType){
+  // for web ui ctrl
+  case CMD_WEB_SET_JOINTS_BAUD:
+                        jointsCtrl.setBaudRate(jsonCmdInput["baud"]);
+                        break;
+  
+  case CMD_STSM_CTRL:
+                        jointsCtrl.stepsCtrlSMST(jsonCmdInput["id"],
+                                                 jsonCmdInput["pos"],
+                                                 jsonCmdInput["spd"],
+                                                 jsonCmdInput["acc"]);
+                        break;
+  case CMD_STSM_SET_MIDDLE:
+                        jointsCtrl.setMiddleSTSM(jsonCmdInput["id"]);
+                        break;
+  case CMD_STSM_CHANGE_ID:
+                        jointsCtrl.changeIDSTSM(jsonCmdInput["old_id"], 
+                                                jsonCmdInput["new_id"]);
+                        break;
+  case CMD_STSM_TORQUE_LOCK:
+                        jointsCtrl.torqueLockSTSM(jsonCmdInput["id"],
+                                                  jsonCmdInput["state"]);
+                        break;
+  case CMD_STSM_FEEDBACK:
+                        jointFeedback = jointsCtrl.feedbackSTSM(jsonCmdInput["id"]);
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_SINGLE_FEEDBACK;
+                        if (jointFeedback[0] == -1) {
+                          jsonFeedback["ps"] = -1;
+                          serializeJson(jsonFeedback, outputString);
+                          msg(outputString);
+                        } else {
+                          jsonFeedback["ps"] = jointFeedback[0];
+                          jsonFeedback["pos"] = jointFeedback[1];
+                          jsonFeedback["spd"] = jointFeedback[2];
+                          jsonFeedback["load"] = jointFeedback[3];
+                          jsonFeedback["vol"] = jointFeedback[4];
+                          jsonFeedback["temp"] = jointFeedback[5];
+                          jsonFeedback["mov"] = jointFeedback[6];
+                          jsonFeedback["curt"] = jointFeedback[7];
+                          serializeJson(jsonFeedback, outputString);
+                          msg(outputString);
+                        }
+                        break;
+
+  case CMD_HL_CTRL:
+                        jointsCtrl.stepsCtrlHL(jsonCmdInput["id"],
+                                               jsonCmdInput["pos"],
+                                               jsonCmdInput["spd"],
+                                               jsonCmdInput["acc"],
+                                               true);
+                        break;
+  case CMD_HL_SET_MIDDLE:
+                        jointsCtrl.setMiddleHL(jsonCmdInput["id"]);
+                        break;
+  case CMD_HL_CHANGE_ID:
+                        jointsCtrl.changeIDHL(jsonCmdInput["old_id"],
+                                              jsonCmdInput["new_id"]);
+                        break;
+  case CMD_HL_TORQUE_LOCK:
+                        jointsCtrl.torqueLockHL(jsonCmdInput["id"],
+                                                jsonCmdInput["state"]);
+                        break;
+  case CMD_HL_FEEDBACK:
+                        jointFeedback = jointsCtrl.feedbackHL(jsonCmdInput["id"]);
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_SINGLE_FEEDBACK;
+                        if (jointFeedback[0] == -1) {
+                          jsonFeedback["ps"] = -1;
+                          serializeJson(jsonFeedback, outputString);
+                          msg(outputString);
+                        } else {
+                          jsonFeedback["ps"] = jointFeedback[0];
+                          jsonFeedback["pos"] = jointFeedback[1];
+                          jsonFeedback["spd"] = jointFeedback[2];
+                          jsonFeedback["load"] = jointFeedback[3];
+                          jsonFeedback["vol"] = jointFeedback[4];
+                          jsonFeedback["temp"] = jointFeedback[5];
+                          jsonFeedback["mov"] = jointFeedback[6];
+                          jsonFeedback["curt"] = jointFeedback[7];
+                          serializeJson(jsonFeedback, outputString);
+                          msg(outputString);
+                        }
+                        break;
+
+  case CMD_SC_CTRL:
+                        jointsCtrl.stepsCtrlSC(jsonCmdInput["id"],
+                                               jsonCmdInput["pos"],
+                                               jsonCmdInput["time"],
+                                               jsonCmdInput["spd"],
+                                               true);
+                        break;
+  case CMD_SC_CHANGE_ID:
+                        jointsCtrl.changeIDSC(jsonCmdInput["old_id"],
+                                              jsonCmdInput["new_id"]);
+                        break;
+  case CMD_SC_TORQUE_LOCK:
+                        jointsCtrl.torqueLockSC(jsonCmdInput["id"],
+                                                jsonCmdInput["state"]);
+                        break;
+  case CMD_SC_FEEDBACK:
+                        jointFeedback = jointsCtrl.feedbackSC(jsonCmdInput["id"]);
+                        jsonFeedback.clear();
+                        jsonFeedback["T"] = -CMD_SINGLE_FEEDBACK;
+                        if (jointFeedback[0] == -1) {
+                          jsonFeedback["ps"] = -1;
+                          serializeJson(jsonFeedback, outputString);
+                          msg(outputString);
+                        } else {
+                          jsonFeedback["ps"] = jointFeedback[0];
+                          jsonFeedback["pos"] = jointFeedback[1];
+                          jsonFeedback["spd"] = jointFeedback[2];
+                          jsonFeedback["load"] = jointFeedback[3];
+                          jsonFeedback["vol"] = jointFeedback[4];
+                          jsonFeedback["temp"] = jointFeedback[5];
+                          jsonFeedback["mov"] = jointFeedback[6];
+                          jsonFeedback["curt"] = jointFeedback[7];
+                          serializeJson(jsonFeedback, outputString);
+                          msg(outputString);
+                        }
+                        break;
+
+
+
   case CMD_SET_JOINTS_BAUD:
                         jointsCtrl.setBaudRate(jsonCmdInput["baud"]);
                         break;
@@ -852,12 +978,12 @@ void loop() {
     serializeJson(jsonFeedback, outputString);
     msg(outputString);
   }
+#endif
 
   if (newCmdReceived) {
     jsonCmdReceiveHandler(jsonCmdReceive);
     newCmdReceived = false;
     jsonCmdReceive.clear();
   }
-#endif
 }
 

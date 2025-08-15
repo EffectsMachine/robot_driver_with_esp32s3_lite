@@ -40,7 +40,7 @@ bool Wireless::setAP(String ssid, String password, int wifiChannel) {
         Serial0.println("SSID is empty, skip configuring Access Point");
         return false;
     }
-    // WiFi.mode(WIFI_AP_STA);
+    WiFi.mode(WIFI_AP_STA);
     WiFi.softAP(ssid.c_str(), password.c_str(), wifiChannel, 0, maxClients);
     if (WiFi.softAPIP()) {
         Serial.println("Access Point started");
@@ -68,7 +68,7 @@ bool Wireless::setSTA(String ssid, String password) {
         Serial0.println("SSID is empty, skip configuring Station");
         return false;
     }
-    // WiFi.mode(WIFI_AP_STA);
+    WiFi.mode(WIFI_AP_STA);
     WiFi.begin(ssid.c_str(), password.c_str());
     Serial.print("Connecting to WiFi");
     Serial0.print("Connecting to WiFi");
@@ -102,12 +102,13 @@ bool Wireless::setWifiMode(int mode, String ap_ssid, String ap_password, int wif
     } else if (mode == WIFI_MODE_AP_STA) {
         WiFi.mode(WIFI_AP_STA);
         wifiMode = WIFI_MODE_AP_STA;
-        // setAP(ap_ssid.c_str(), ap_password.c_str(), wifiChannel);
         bool result = WiFi.softAP(ap_ssid.c_str(), ap_password.c_str(), wifiChannel);
         Serial.println(result ? "AP started!" : "AP start failed!");
         Serial.print("AP IP address: ");
         Serial.println(WiFi.softAPIP());
         if(setSTA(sta_ssid.c_str(), sta_password.c_str())) {
+            Serial.print("STA IP address: ");
+            Serial.println(WiFi.localIP().toString().c_str());
             return true;
         } else {
             return false;
@@ -204,12 +205,11 @@ void Wireless::espnowInit(bool longRange) {
         Serial0.println("Error initializing ESP-NOW");
         return;
     }
-    esp_now_register_recv_cb(OnDataRecv);
-    // esp_now_register_recv_cb([](const uint8_t *mac, const uint8_t *incomingData, int len) {
-    //     esp_now_peer_info_t peerInfo;
-    //     memcpy(peerInfo.peer_addr, mac, 6);
-    //     OnDataRecv(&peerInfo, incomingData, len);
-    // });
+    esp_now_register_recv_cb([](const esp_now_recv_info_t *info, const uint8_t *incomingData, int len) {
+    esp_now_peer_info_t peerInfo;
+    memcpy(peerInfo.peer_addr, info->src_addr, 6);  // 从 info 取源 MAC
+    OnDataRecv(peerInfo.peer_addr, incomingData, len);
+    });
 }
 
 bool Wireless::setEspNowMode(int mode) {
@@ -240,6 +240,7 @@ uint8_t* Wireless::getMac() {
         Serial0.println("Failed to get MAC address");
         return nullptr;
     }
+    return nullptr;
 }
 
 void Wireless::macStringToByteArray(const String& macString, uint8_t* byteArray) {

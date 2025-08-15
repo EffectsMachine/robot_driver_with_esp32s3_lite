@@ -193,34 +193,34 @@ void changeMainMenu(event_t e, const EventMsg* m){
             }
             break;
         case event_t::longPress :
-            if (m->gpio == BUTTON_RIGHT){
-                insideMainMenu = true;
-                screenCtrl.clearDisplay();
-                if (menuType == 0){
-                    menu.assign(BUTTON_UP, 0, deviceCtrl);
-                    menu.assign(BUTTON_DOWN, 0, deviceCtrl);
-                    menu.assign(BUTTON_LEFT, 0, deviceCtrl);
-                    menu.assign(BUTTON_RIGHT, 0, deviceCtrl);
-                    screenCtrl.displayText("DeviceType", 0, 0, 2);
-                    screenCtrl.displayText(deviceTypeStr[deviceTypeIndex], 0, 16, 2);
-                } else if (menuType == 1){
-                    screenCtrl.displayText("ESP-NOW", 0, 0, 2);
-                    screenCtrl.displayText("INFO", 0, 16, 2);
-                }
+            // if (m->gpio == BUTTON_RIGHT){
+            //     insideMainMenu = true;
+            //     screenCtrl.clearDisplay();
+            //     if (menuType == 0){
+            //         menu.assign(BUTTON_UP, 0, deviceCtrl);
+            //         menu.assign(BUTTON_DOWN, 0, deviceCtrl);
+            //         menu.assign(BUTTON_LEFT, 0, deviceCtrl);
+            //         menu.assign(BUTTON_RIGHT, 0, deviceCtrl);
+            //         screenCtrl.displayText("DeviceType", 0, 0, 2);
+            //         screenCtrl.displayText(deviceTypeStr[deviceTypeIndex], 0, 16, 2);
+            //     } else if (menuType == 1){
+            //         screenCtrl.displayText("ESP-NOW", 0, 0, 2);
+            //         screenCtrl.displayText("INFO", 0, 16, 2);
+            //     }
                 
-            } else if (m->gpio == BUTTON_LEFT){
-                insideMainMenu = false;
-                menu.assign(BUTTON_UP, 0, changeMainMenu);
-                menu.assign(BUTTON_DOWN, 0, changeMainMenu);
-                screenCtrl.clearDisplay();
-                if (menuType == 0){
-                    screenCtrl.displayText(">Devices", 0, 0, 2);
-                    screenCtrl.displayText(" ESP-NOW", 0, 16, 2);
-                } else if (menuType == 1){
-                    screenCtrl.displayText(" Devices", 0, 0, 2);
-                    screenCtrl.displayText(">ESP-NOW", 0, 16, 2);
-                }
-            }
+            // } else if (m->gpio == BUTTON_LEFT){
+            //     insideMainMenu = false;
+            //     menu.assign(BUTTON_UP, 0, changeMainMenu);
+            //     menu.assign(BUTTON_DOWN, 0, changeMainMenu);
+            //     screenCtrl.clearDisplay();
+            //     if (menuType == 0){
+            //         screenCtrl.displayText(">Devices", 0, 0, 2);
+            //         screenCtrl.displayText(" ESP-NOW", 0, 16, 2);
+            //     } else if (menuType == 1){
+            //         screenCtrl.displayText(" Devices", 0, 0, 2);
+            //         screenCtrl.displayText(">ESP-NOW", 0, 16, 2);
+            //     }
+            // }
             break;
     }
 };
