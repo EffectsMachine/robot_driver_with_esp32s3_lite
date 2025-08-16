@@ -77,6 +77,9 @@ void msg(String msgStr, bool newLine = true) {
 #endif
 }
 
+// http and websocket
+AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
 
 void getMsgStatus() {
   jsonFeedback.clear();

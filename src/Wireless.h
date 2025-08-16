@@ -8,6 +8,7 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 #include <ArduinoJson.h>
+#include "Web_page.h"
 
 typedef void (*JsonCommandCallback)(const JsonDocument& jsonCmdInput);
 static uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -19,9 +20,6 @@ static bool receivedFromKnownMac = false;
 // esp-now, on -> true, off -> false
 static bool espnowMode = true;
 
-// AsyncWebServer server(80);
-// AsyncWebSocket ws("/ws");
-
 class Wireless{
     public:
         bool setAP(String ssid, String password, int wifiChannel);
@@ -32,9 +30,7 @@ class Wireless{
         String getAPIP();
         String getSTAIP();
 
-        // void onWsEvent(AsyncWebSocket *serverPtr, AsyncWebSocketClient *client,
-        //        AwsEventType type, void *arg, uint8_t *data, size_t len);
-        static void notifyAllClientsStatus();
+        
 
         void espnowInit(bool longRange);
         bool setEspNowMode(int mode);

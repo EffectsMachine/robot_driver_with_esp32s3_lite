@@ -150,6 +150,12 @@ String Wireless::getSTAIP() {
     }
 }
 
+
+
+
+
+
+
 bool isKnownMac(const uint8_t *mac) {
     for (int i = 0; i < sizeof(knownMacs) / sizeof(knownMacs[0]); i++) {
         if (memcmp(mac, knownMacs[i], 6) == 0) {
@@ -233,7 +239,7 @@ String Wireless::macToString(uint8_t mac[6]) {
 
 uint8_t* Wireless::getMac() {
     static uint8_t mac[6];
-    if (esp_efuse_mac_get_default(mac) == ESP_OK) {
+    if (WiFi.macAddress(mac) == ESP_OK) {
         return mac;
     } else {
         Serial.println("Failed to get MAC address");
