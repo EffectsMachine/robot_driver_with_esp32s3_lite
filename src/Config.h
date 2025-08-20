@@ -51,6 +51,9 @@
 // Buzzer
 #define BUZZER_PIN 21
 
+// Feedback interval time
+#define FB_INTERVAL_MS 1000
+
 // --- Functions Configuration ---
 // use file system to save the data
 #define USE_FILE_SYSTEM
@@ -78,6 +81,11 @@ static bool usbMsgFlag = true;
 
 // processing time adjustment
 static int timeOffset = 50;
+
+// --- JSON CMDs ---
+// {"T":0}
+// breakLoop()；
+#define CMD_BREAK_LOOP 0
 
 // --- Command Configuration ---
 // WEB interface
@@ -111,7 +119,7 @@ static int timeOffset = 50;
 
 
 /// --- --- --- < HL Servo > --- --- ---
-// {"T":21,"id":1,"pos":2047,"spd":0,"acc":0}
+// {"T":21,"id":1,"pos":2047,"spd":0,"acc":0,"cl":500}
 // jointsCtrl.stepsCtrlHL(u_int8_t id, int pos, int speed, int acc, bool move_trigger = true);
 #define CMD_HL_CTRL 21
 
@@ -149,6 +157,15 @@ static int timeOffset = 50;
 // {"T":35,"id":1}
 // jointsCtrl.feedbackSC(u_int8_t id, bool state);
 #define CMD_SC_FEEDBACK 35
+
+
+
+// --- --- --- < Dev Info > --- --- ---
+// {"T":50,"baud":1000000}
+#define CMD_DEV_INFO 50
+
+// {"T":51,"delay":1000}
+#define CMD_DELAY 51
 
 
 
@@ -346,6 +363,14 @@ static int timeOffset = 50;
 // delete mission
 // {"T":309,"name":"boot"}
 #define CMD_DELETE_MISSION 309
+
+// run default mission
+// {"T":308,"name":"up","interval":0,"loop":1}
+// {"T":308,"name":"down","interval":0,"loop":1}
+// {"T":308,"name":"left","interval":0,"loop":1}
+// {"T":308,"name":"right","interval":0,"loop":1}
+// {"T":308,"name":"boot_user","interval":0,"loop":1}
+
 // format flash (clear all)
 // {"T":399}
 #define CMD_FORMAT_FLASH 399

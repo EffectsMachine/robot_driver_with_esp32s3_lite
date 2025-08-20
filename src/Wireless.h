@@ -30,13 +30,16 @@ class Wireless{
         String getAPIP();
         String getSTAIP();
 
-        
+        // void handleWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
+        //            AwsEventType type, void *arg, uint8_t *data, size_t len);
+        // uint32_t lastTick = 0;
+        // void pushTelemetryIfNeeded();
 
         void espnowInit(bool longRange);
         bool setEspNowMode(int mode);
         void macStringToByteArray(const String& macString, uint8_t* byteArray);
         String macToString(uint8_t mac[6]);
-        uint8_t* getMac();
+        String getMac();
         bool sendEspNow(String macInput, String data);
         bool sendEspNowJson(uint8_t mac[6], const JsonDocument& jsonCmdInput);
         void setJsonCommandCallback(JsonCommandCallback callback);

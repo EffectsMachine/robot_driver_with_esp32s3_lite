@@ -126,6 +126,8 @@ class JointsCtrl {
         bool linkArmFeedbackFlag = false; // link arm feedback flag
         int linkArmFeedbackHz = 10; // link arm feedback Hz
 
+        unsigned int baudrate = 1000000;
+
         void init(int baud);
         void setBaudRate(int baud);
         bool setJointType(u_int8_t type);

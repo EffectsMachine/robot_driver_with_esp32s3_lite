@@ -2,6 +2,7 @@
 #include "jointsCtrl.h"
 
 void JointsCtrl::init(int baud) {
+    baudrate = baud;
     Serial1.begin(baud, SERIAL_8N1, BUS_SERVO_RX, BUS_SERVO_TX);
     sc.pSerial = &Serial1;
     smst.pSerial = &Serial1;
@@ -17,6 +18,7 @@ void JointsCtrl::init(int baud) {
 }
 
 void JointsCtrl::setBaudRate(int baud) {
+    baudrate = baud;
     Serial1.updateBaudRate(baud);
 }
 

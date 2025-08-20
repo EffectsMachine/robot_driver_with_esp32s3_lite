@@ -2,6 +2,10 @@
 
 JsonCommandCallback jsonCommandCallback = nullptr;
 
+// JsonDocument wsJson;
+// JsonDocument wsRsp;
+// String wsOutString;
+
 #define WIFI_MODE_NONE 0
 #define WIFI_MODE_AP_STA 1
 
@@ -156,6 +160,7 @@ String Wireless::getSTAIP() {
 
 
 
+
 bool isKnownMac(const uint8_t *mac) {
     for (int i = 0; i < sizeof(knownMacs) / sizeof(knownMacs[0]); i++) {
         if (memcmp(mac, knownMacs[i], 6) == 0) {
@@ -237,16 +242,18 @@ String Wireless::macToString(uint8_t mac[6]) {
     return String(macStr);
 }
 
-uint8_t* Wireless::getMac() {
-    static uint8_t mac[6];
-    if (WiFi.macAddress(mac) == ESP_OK) {
-        return mac;
-    } else {
-        Serial.println("Failed to get MAC address");
-        Serial0.println("Failed to get MAC address");
-        return nullptr;
-    }
-    return nullptr;
+String Wireless::getMac() {
+    return WiFi.macAddress();
+
+    // static uint8_t mac[6];
+    // if (WiFi.macAddress(mac) == ESP_OK) {
+    //     return mac;
+    // } else {
+    //     Serial.println("Failed to get MAC address");
+    //     Serial0.println("Failed to get MAC address");
+    //     return nullptr;
+    // }
+    // return nullptr;
 }
 
 void Wireless::macStringToByteArray(const String& macString, uint8_t* byteArray) {

@@ -30,8 +30,6 @@ FilesCtrl filesCtrl;
 ScreenCtrl screenCtrl;
 Wireless wireless;
 
-#include "buttonUI.h"
-
 bool newCmdReceived = false;
 bool breakloop = false;
 unsigned long tuneStartTime;
@@ -77,10 +75,6 @@ void msg(String msgStr, bool newLine = true) {
 #endif
 }
 
-// http and websocket
-AsyncWebServer server(80);
-AsyncWebSocket ws("/ws");
-
 void getMsgStatus() {
   jsonFeedback.clear();
   jsonFeedback["T"] = CMD_SET_MSG_OUTPUT;
@@ -92,11 +86,139 @@ void getMsgStatus() {
 }
 
 void buttonBuzzer() {
-  tone(BUZZER_PIN, 2000);
-  delay(5);
+  for (int f = 1200; f <= 2000; f += 200) {
+    tone(BUZZER_PIN, f);
+    delay(5);
+  }
   noTone(BUZZER_PIN);
   digitalWrite(BUZZER_PIN, HIGH);
 }
+
+#include "buttonUI.h"
+
+// websocket & http
+AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
+
+void handleWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
+                   AwsEventType type, void *arg, uint8_t *data, size_t len) {
+  if (type == WS_EVT_CONNECT) {
+    // feedback after connection
+    jsonFeedback.clear();
+    jsonFeedback["type"] = "hello";
+    jsonFeedback["id"]   = client->id();
+    jsonFeedback["msg"]  = "connected";
+    serializeJson(jsonFeedback, outputString);
+    client->text(outputString);
+  }
+  else if (type == WS_EVT_DATA) {
+    AwsFrameInfo *info = (AwsFrameInfo *)arg;
+    if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+      // recv JSON
+      DeserializationError err = deserializeJson(jsonCmdReceive, data, len);
+      if (jsonCmdReceive["T"].as<int>() == CMD_BREAK_LOOP) {
+        breakloop = true;
+        msg("breakloop");
+      }
+      if (err == DeserializationError::Ok) {
+        if (echoMsgFlag) {
+          serializeJson(jsonCmdReceive, outputString);
+          msg(outputString, true);
+        }
+        newCmdReceived = true;
+      } else {
+        // Handle JSON parsing error here
+        msg("JSON parsing error: ", true);
+        msg(err.c_str());
+      }
+    }
+  }
+}
+
+// auto push telemetry
+unsigned int baudrate;
+String sta_ip;
+String ap_ip;
+String mac_addr;
+uint32_t lastTick = 0;
+void pushTelemetry() {
+  if (millis() - lastTick >= FB_INTERVAL_MS) {
+    lastTick = millis();
+    if (ws.count() > 0) {
+      jsonFeedback.clear();
+      jsonFeedback["T"]   = 50;
+      jsonFeedback["baud"]   = baudrate;
+      jsonFeedback["sta"]   = sta_ip;
+      jsonFeedback["ap"]   = ap_ip;
+      jsonFeedback["mac"]   = mac_addr;
+
+      // jsonFeedback["baud"]   = jointsCtrl.baudrate;
+      // jsonFeedback["sta"]   = wireless.getSTAIP();
+      // jsonFeedback["ap"]   = wireless.getAPIP();
+      // jsonFeedback["mac"]   = wireless.macToString(wireless.getMac());
+      jsonFeedback["uptime"] = (uint32_t)(millis()/1000);
+      serializeJson(jsonFeedback, outputString);
+      ws.textAll(outputString);
+    }
+  }
+}
+
+void setupHttpRoutes() {
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *req){
+    req->send(200, "text/html; charset=utf-8", INDEX_HTML);
+  });
+
+  // CORS（如需跨域前端调试）
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+
+  // 设备信息：GET /api/info
+  server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *req){
+    // StaticJsonDocument<256> doc;
+    jsonFeedback.clear();
+    
+    jsonFeedback["chip"]   = "ESP32-S3";
+    jsonFeedback["sdk"]    = ESP.getSdkVersion();
+    jsonFeedback["fw_ver"] = "demo-1.0";
+    uint8_t m[6]; WiFi.macAddress(m);
+    jsonFeedback["mac"]    = wireless.macToString(m);
+    serializeJson(jsonFeedback, outputString);
+    req->send(200, "application/json", outputString);
+  });
+
+  // cmd：POST /api/cmd  -> { "cmd":"set_pwm", "value":0..255 }
+  server.on("/api/cmd", HTTP_POST, [](AsyncWebServerRequest *req){},
+    NULL,
+    [](AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total){
+      jsonCmdReceive.clear();
+      DeserializationError err = deserializeJson(jsonCmdReceive, data, len);
+      if (jsonCmdReceive["T"].as<int>() == CMD_BREAK_LOOP) {
+        breakloop = true;
+        msg("breakloop");
+      }
+      jsonFeedback.clear();
+
+      if (err == DeserializationError::Ok) {
+        if (echoMsgFlag) {
+          serializeJson(jsonCmdReceive, outputString);
+          msg(outputString, true);
+        }
+        newCmdReceived = true;
+      } else {
+        // Handle JSON parsing error here
+        msg("JSON parsing error: ", true);
+        msg(err.c_str());
+      }
+      req->send(200, "application/json", outputString);
+    }
+  );
+
+  // WebSocket
+  ws.onEvent(handleWsEvent);
+  server.addHandler(&ws);
+}
+
 
 
 /**
@@ -133,8 +255,9 @@ void setup() {
   Wire.setClock(400000);
 
   // buzzer
-  // pinMode(BUZZER_PIN, OUTPUT);
-  // buttonBuzzer();
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, HIGH);
+  buttonBuzzer();
 
 
 
@@ -171,7 +294,7 @@ void setup() {
   filesCtrl.init();
   if(!filesCtrl.checkMission("boot")) {
     filesCtrl.createMission("boot", "this is the boot mission.");
-    filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
+    filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"Robot\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
     msg("creat New mission: boot");
   } else {
     msg("boot mission already exists.");
@@ -179,7 +302,7 @@ void setup() {
       Serial.println("Already set wifi mode.");
       Serial0.println("Already set wifi mode.");
     } else {
-      filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"LYgion\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
+      filesCtrl.appendStep("boot", "{\"T\":400,\"mode\":1,\"ap_ssid\":\"Robot\",\"ap_password\":\"12345678\",\"channel\":1,\"sta_ssid\":\"\",\"sta_password\":\"\"}");
       Serial.println("Haven't set wifi mode yet. Appending to boot mission.");
       Serial0.println("Haven't set wifi mode yet. Appending to boot mission.");
     }
@@ -211,12 +334,43 @@ void setup() {
   menu_init_RD();
 
   screenCtrl.clearDisplay();
-  String line_1 = "AP:" + wireless.getAPIP();
-  String line_2 = "STA:" + wireless.getSTAIP();
+  String line_1 = "D-SSID:Robot PWD:1~8";
+  String line_2 = "AP:" + wireless.getAPIP();
+  String line_3 = "STA:" + wireless.getSTAIP();
+  String line_4 = "MAC:" + wireless.getMac();
   screenCtrl.changeSingleLine(1, line_1, 0);
-  screenCtrl.changeSingleLine(2, line_2, 1);
+  screenCtrl.changeSingleLine(2, line_2, 0);
+  screenCtrl.changeSingleLine(3, line_3, 0);
+  screenCtrl.changeSingleLine(4, line_4, 1);
+
+  setupHttpRoutes();
+  server.begin();
+
+  baudrate = jointsCtrl.baudrate;
+  sta_ip = wireless.getSTAIP();
+  ap_ip = wireless.getAPIP();
+  mac_addr = wireless.getMac();
+
+  runMission("boot_user", 0, -1);
 }
 
+void delayInterruptible(int ms) {
+    int elapsed = 0;
+    int step = 10;
+    while (elapsed < ms) {
+        if (breakloop) {
+            // breakloop = false;
+            return;
+        }
+        int delayTime = (ms - elapsed > step) ? step : (ms - elapsed);
+        delay(delayTime);
+        elapsed += delayTime;
+    }
+}
+
+void breakLoop() {
+  breakloop = true;
+}
 
 bool runStep(String missionName, int step) {
   outputString = filesCtrl.readStep(missionName, step);
@@ -234,6 +388,9 @@ bool runStep(String missionName, int step) {
 
 
 void runMission(String missionName, int intervalTime, int loopTimes) {
+  if (!filesCtrl.checkMission(missionName)) {
+    return;
+  }
   intervalTime = intervalTime - timeOffset;
   if (intervalTime < 0) {intervalTime = 0;}
   int j = 1;
@@ -242,13 +399,10 @@ void runMission(String missionName, int intervalTime, int loopTimes) {
     msg(String(j));
     int i = 1;
     while (true) {
-      if (Serial0.available() > 0) {
-        msg("Mission interrupted.");
-        break;
-      }
       if (breakloop) {
         breakloop = false;
-        break;
+        msg("breakloop");
+        return;
       }
       if (runStep(missionName, i)) {
         msg("Step: ", false);
@@ -261,8 +415,8 @@ void runMission(String missionName, int intervalTime, int loopTimes) {
       }
     }
     j++;
-    if (j > loopTimes && j != -1) {
-      break;
+    if (j > loopTimes && loopTimes != -1) {
+      return;
     }
   }
 }
@@ -271,19 +425,23 @@ void runMission(String missionName, int intervalTime, int loopTimes) {
 
 void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   int cmdType;
-  breakloop = false;
   cmdType = jsonCmdInput["T"].as<int>();
   switch(cmdType){
   // for web ui ctrl
+  case CMD_BREAK_LOOP:
+                        breakLoop();
+                        break;
   case CMD_WEB_SET_JOINTS_BAUD:
                         jointsCtrl.setBaudRate(jsonCmdInput["baud"]);
+                        baudrate = jointsCtrl.baudrate;
                         break;
   
   case CMD_STSM_CTRL:
                         jointsCtrl.stepsCtrlSMST(jsonCmdInput["id"],
                                                  jsonCmdInput["pos"],
                                                  jsonCmdInput["spd"],
-                                                 jsonCmdInput["acc"]);
+                                                 jsonCmdInput["acc"],
+                                                 true);
                         break;
   case CMD_STSM_SET_MIDDLE:
                         jointsCtrl.setMiddleSTSM(jsonCmdInput["id"]);
@@ -299,7 +457,7 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   case CMD_STSM_FEEDBACK:
                         jointFeedback = jointsCtrl.feedbackSTSM(jsonCmdInput["id"]);
                         jsonFeedback.clear();
-                        jsonFeedback["T"] = -CMD_SINGLE_FEEDBACK;
+                        jsonFeedback["T"] = -CMD_STSM_FEEDBACK;
                         if (jointFeedback[0] == -1) {
                           jsonFeedback["ps"] = -1;
                           serializeJson(jsonFeedback, outputString);
@@ -323,6 +481,7 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                                                jsonCmdInput["pos"],
                                                jsonCmdInput["spd"],
                                                jsonCmdInput["acc"],
+                                               jsonCmdInput["cl"],
                                                true);
                         break;
   case CMD_HL_SET_MIDDLE:
@@ -339,7 +498,7 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   case CMD_HL_FEEDBACK:
                         jointFeedback = jointsCtrl.feedbackHL(jsonCmdInput["id"]);
                         jsonFeedback.clear();
-                        jsonFeedback["T"] = -CMD_SINGLE_FEEDBACK;
+                        jsonFeedback["T"] = -CMD_HL_FEEDBACK;
                         if (jointFeedback[0] == -1) {
                           jsonFeedback["ps"] = -1;
                           serializeJson(jsonFeedback, outputString);
@@ -376,7 +535,7 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   case CMD_SC_FEEDBACK:
                         jointFeedback = jointsCtrl.feedbackSC(jsonCmdInput["id"]);
                         jsonFeedback.clear();
-                        jsonFeedback["T"] = -CMD_SINGLE_FEEDBACK;
+                        jsonFeedback["T"] = -CMD_SC_FEEDBACK;
                         if (jointFeedback[0] == -1) {
                           jsonFeedback["ps"] = -1;
                           serializeJson(jsonFeedback, outputString);
@@ -393,6 +552,10 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                           serializeJson(jsonFeedback, outputString);
                           msg(outputString);
                         }
+                        break;
+  
+  case CMD_DELAY: 
+                        delayInterruptible(jsonCmdInput["delay"]);
                         break;
 
 
@@ -838,7 +1001,7 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         wireless.setEspNowMode(jsonCmdInput["mode"]);
                         break;
   case CMD_GET_MAC:
-                        outputString = wireless.macToString(wireless.getMac());
+                        outputString = wireless.getMac();
                         msg(outputString);
                         break;
   case CMD_ESP_NOW_SEND:
@@ -987,6 +1150,9 @@ void loop() {
     jsonCmdReceiveHandler(jsonCmdReceive);
     newCmdReceived = false;
     jsonCmdReceive.clear();
+    ws.textAll(outputString);
   }
+
+  pushTelemetry();
 }
 
