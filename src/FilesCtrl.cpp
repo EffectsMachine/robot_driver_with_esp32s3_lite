@@ -471,3 +471,7 @@ String FilesCtrl::findCmdByType(String missionName, int cmdType) {
 
     return targetCmd;
 }
+
+String getValueByMissionNameAndKey(String missionName, int cmdType, String key) {
+    String targetCmd = 
+}

@@ -315,7 +315,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
             <section>
                 <div>
                     <h2 class="tittle-h2">Device Infomation</h2>
-                    <p id="DevInfo">Disconnected</p>
+                    <p id="upTime">Disconnected</p>
                     <p id="baudrate">Current Baud Rate: 1000000</p>
                     <p id="STA_IP">STA IP: 192.168.XXX.XXX</p>
                     <p id="AP_IP">AP IP: 192.168.4.1</p>
@@ -771,7 +771,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
         let reconnectDelay = 1000;
         const RECONNECT_MAX = 15000;
 
-        const wsOut = document.getElementById('DevInfo');
+        const wsOut = document.getElementById('upTime');
 
         // auto connection
         window.addEventListener('DOMContentLoaded', () => {
@@ -825,8 +825,10 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
             sock.onmessage = (ev) => {
                 try {
                     var jsonResponse = JSON.parse(ev.data);
-                    wsOut.textContent = JSON.stringify(jsonResponse, null, 2);
+                    // wsOut.textContent = JSON.stringify(jsonResponse, null, 2);
+                    console.log("jsonRecv", jsonResponse);
                     if (jsonResponse.T == 50) {
+                        document.getElementById("upTime").innerHTML = 'Uptime: '+ jsonResponse.uptime;
                         document.getElementById("baudrate").innerHTML = 'Current Baud Rate: '+ jsonResponse.baud;
                         document.getElementById("STA_IP").innerHTML = 'STA IP: '+jsonResponse.sta;
                         document.getElementById("AP_IP").innerHTML = 'AP IP: '+jsonResponse.ap;
