@@ -317,14 +317,32 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                     <h2 class="tittle-h2">Device Infomation</h2>
                     <p id="upTime">Disconnected</p>
                     <p id="baudrate">Current Baud Rate: 1000000</p>
-                    <p id="STA_IP">STA IP: 192.168.XXX.XXX</p>
-                    <p id="AP_IP">AP IP: 192.168.4.1</p>
                     <p id="MAC">MAC: FF:FF:FF:FF:FF:FF</p>
                     <div style="margin-bottom: 20px;">
                         <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='confirmAndSend({"T":10,"baud":115200}, "Change buadrate to 115200?");'>115200</button>
                         <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='confirmAndSend({"T":10,"baud":500000}, "Change buadrate to 500K?");'>500K</button>
                         <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='confirmAndSend({"T":10,"baud":1000000}, "Change buadrate to 1M?");'>1M</button>
                         <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='confirmAndSend({"T":10,"baud":3000000}, "Change buadrate to 3M?");'>3M</button>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="tittle-h2">Wifi Settings</h2>
+                    <div style="margin-bottom: 20px;">
+                        <label>AP_SSID:</label>
+                        <input id="ap_ssid" value="Robot" style="width:80px; margin: 0 12px; padding:6px; border-radius:6px; border:1px solid #555; background:#f1f2f6; color:#2f3542;" />
+                        <label>AP_PWD:</label>
+                        <input id="ap_pwd" value="12345678" style="width:80px; margin: 0 12px; padding:6px; border-radius:6px; border:1px solid #555; background:#f1f2f6; color:#2f3542;" />
+                    </div>
+                    <p>STA STATUS:</p>
+                    <p id="sta_status">Disconnected</p>
+                    <div style="margin-bottom: 20px;">
+                        <label>STA_SSID:</label>
+                        <input id="sta_ssid" style="width:80px; margin: 0 12px; padding:6px; border-radius:6px; border:1px solid #555; background:#f1f2f6; color:#2f3542;" />
+                        <label>STA_PWD:</label>
+                        <input id="sta_pwd" type="password" style="width:80px; margin: 0 12px; padding:6px; border-radius:6px; border:1px solid #555; background:#f1f2f6; color:#2f3542;" />
+                    </div>
+                    <div>
+                        <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='confirmAndSend(setSta(), "Connect to WIFI:" + document.getElementById("sta_ssid").value + "?");'>SET WIFI</button>
                     </div>
                 </div>
                 <div>
@@ -686,15 +704,22 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                             </div>
                             <div class="info-box json-cmd-info">
                                 <div>
-                                    <p>CMD_SET_MSG_OUTPUT</p>
-                                    <p class="cmd-value">{"T":604,"echo":1,"uart":1,"usb":1}</p>
+                                    <p>CMD_RESET</p>
+                                    <p class="cmd-value">{"T":602}</p>
                                 </div>
                                 <button class="w-btn">INPUT</button>
                             </div>
                             <div class="info-box json-cmd-info">
                                 <div>
-                                    <p>CMD_FORMAT_FLASH</p>
-                                    <p class="cmd-value">{"T":399}</p>
+                                    <p>CMD_SET_MSG_OUTPUT</p>
+                                    <p class="cmd-value">{"T":604,"echo":1,"uart":0,"usb":1}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_SERIAL_FORWARDING</p>
+                                    <p class="cmd-value">{"T":605,"sf":1}</p>
                                 </div>
                                 <button class="w-btn">INPUT</button>
                             </div>
@@ -757,10 +782,12 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                                 </div>
                                 <button class="w-btn">INPUT</button>
                             </div>
-
-
                         </div>
                     </div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Warning: This will erase all saved WiFi and configuration data. Proceed?")){sendJsonCmd({"T":601});}'>ClearNvs</button>
+                    <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Warning: This will erase all saved mission data. Proceed?")){sendJsonCmd({"T":602});}'>Reset</button>
                 </div>
             </section>
         </div>
@@ -828,11 +855,10 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                     // wsOut.textContent = JSON.stringify(jsonResponse, null, 2);
                     console.log("jsonRecv", jsonResponse);
                     if (jsonResponse.T == 50) {
-                        document.getElementById("upTime").innerHTML = 'Uptime: '+ jsonResponse.uptime;
-                        document.getElementById("baudrate").innerHTML = 'Current Baud Rate: '+ jsonResponse.baud;
-                        document.getElementById("STA_IP").innerHTML = 'STA IP: '+jsonResponse.sta;
-                        document.getElementById("AP_IP").innerHTML = 'AP IP: '+jsonResponse.ap;
-                        document.getElementById("MAC").innerHTML = 'MAC: '+jsonResponse.mac;
+                        document.getElementById("upTime").innerHTML = 'Uptime: ' + jsonResponse.uptime;
+                        document.getElementById("baudrate").innerHTML = 'Current Baud Rate: ' + jsonResponse.baud;
+                        document.getElementById("MAC").innerHTML = 'MAC: ' + jsonResponse.mac;
+                        document.getElementById("sta_status").innerHTML = jsonResponse.ssid + " IP:" + jsonResponse.sta;
                     } else if (jsonResponse.T == -15) {
                         document.getElementById("stsm_pos").value = jsonResponse.pos;
                         document.getElementById("stsm_spd").value = 0;
@@ -896,6 +922,22 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
             }
 
             sock.send(JSON.stringify(payloadObj));
+        }
+
+        function setSta() {
+            // {"T":400,"mode":1,"ap_ssid":"LYgion","ap_password":"12345678","channel":1,"sta_ssid":"ssid","sta_password":"password"}
+            const jsonData = {
+                "T":400,
+                "mode":1,
+                "ap_ssid":document.getElementById("ap_ssid").value,
+                "ap_password":document.getElementById("ap_pwd").value,
+                "channel":1,
+                "sta_ssid":document.getElementById("sta_ssid").value,
+                "sta_password":document.getElementById("sta_pwd").value
+            };
+
+            console.log(jsonData);
+            sendJsonCmd(jsonData);
         }
 
         function stsmAction() {

@@ -73,11 +73,13 @@
 // true: print megs
 // false: do not print megs
 static bool echoMsgFlag = true;
-static bool uartMsgFlag = true;
+static bool uartMsgFlag = false;
 static bool usbMsgFlag = true;
 
+static bool serialForwarding = true;
+
 // serial baud rate
-#define ESP32S3_BAUD_RATE 921600
+#define ESP32S3_BAUD_RATE 1000000
 
 // processing time adjustment
 static int timeOffset = 50;
@@ -412,11 +414,19 @@ static int timeOffset = 50;
 // clear nvs
 // {"T":601}
 #define CMD_CLEAR_NVS 601
-#define CMD_RESET_BOOT_MISSION 602
-
+// reset littleFS
+// {"T":602}
+#define CMD_RESET 602
 // get output mode
 // {"T":603}
 #define CMD_GET_MSG_OUTPUT 603
 // set output mode
-// {"T":604,"echo":1,"uart":1,"usb":1}
+// {"T":604,"echo":1,"uart":0,"usb":1}
 #define CMD_SET_MSG_OUTPUT 604
+// serial forwarding, 1->on(default), 0->off
+// {"T":605,"sf":1}
+#define CMD_SERIAL_FORWARDING 605
+
+// --- Test ---
+// {"T":9999}
+#define CMD_TEST 9999

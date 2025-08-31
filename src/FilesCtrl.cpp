@@ -472,6 +472,12 @@ String FilesCtrl::findCmdByType(String missionName, int cmdType) {
     return targetCmd;
 }
 
-String getValueByMissionNameAndKey(String missionName, int cmdType, String key) {
-    String targetCmd = 
+String FilesCtrl::getValueByMissionNameAndKey(String missionName, int cmdType, String keyName) {
+    String keyValue;
+    String targetCmd = findCmdByType(missionName, cmdType);
+    DeserializationError lineErr = deserializeJson(cmdJson, targetCmd);
+    if (lineErr == DeserializationError::Ok) {
+        keyValue = cmdJson[keyName].as<const char*>();
+    }
+    return keyValue;
 }

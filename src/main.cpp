@@ -148,10 +148,15 @@ void pushTelemetry() {
       jsonFeedback.clear();
       jsonFeedback["T"]   = 50;
       jsonFeedback["baud"]   = baudrate;
-      jsonFeedback["sta"]   = sta_ip;
+      jsonFeedback["sta"]   = wireless.getSTAIP();
       jsonFeedback["ap"]   = ap_ip;
       jsonFeedback["mac"]   = mac_addr;
 
+      if (WiFi.status() == WL_CONNECTED) {
+        jsonFeedback["ssid"] = WiFi.SSID();
+      } else {
+        jsonFeedback["ssid"] = "Disconnected";
+      }
       // jsonFeedback["baud"]   = jointsCtrl.baudrate;
       // jsonFeedback["sta"]   = wireless.getSTAIP();
       // jsonFeedback["ap"]   = wireless.getAPIP();
@@ -168,12 +173,12 @@ void setupHttpRoutes() {
     req->send(200, "text/html; charset=utf-8", INDEX_HTML);
   });
 
-  // CORS（如需跨域前端调试）
+  // CORS
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
 
-  // 设备信息：GET /api/info
+  // device info：GET /api/info
   server.on("/api/info", HTTP_GET, [](AsyncWebServerRequest *req){
     // StaticJsonDocument<256> doc;
     jsonFeedback.clear();
@@ -334,7 +339,7 @@ void setup() {
   menu_init_RD();
 
   screenCtrl.clearDisplay();
-  String line_1 = "D-SSID:Robot PWD:1~8";
+  String line_1 = filesCtrl.getValueByMissionNameAndKey("boot", CMD_SET_WIFI_MODE, "ap_ssid");
   String line_2 = "AP:" + wireless.getAPIP();
   String line_3 = "STA:" + wireless.getSTAIP();
   String line_4 = "MAC:" + wireless.getMac();
@@ -1021,6 +1026,9 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         delay(1000);
                         nvs_flash_init();
                         break;
+  case CMD_RESET:
+                        filesCtrl.flash();
+                        break;
   case CMD_GET_MSG_OUTPUT:
                         getMsgStatus();
                         break;
@@ -1028,6 +1036,32 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
                         echoMsgFlag = jsonCmdInput["echo"];
                         uartMsgFlag = jsonCmdInput["uart"];
                         usbMsgFlag  = jsonCmdInput["usb"];
+                        break;
+  case CMD_SERIAL_FORWARDING:
+                        if (jsonCmdInput["sf"] == 1){
+                          serialForwarding = true;
+                        } else if (jsonCmdInput["sf"] == 0) {
+                          serialForwarding = false;
+                        }
+                        break;
+  
+  case CMD_TEST:
+                        jointsCtrl.setBaudRate(1000000);
+                        jointsCtrl.stepsCtrlSC(254, 200, 0, 0, true);
+                        jointsCtrl.stepsCtrlSMST(254, 0, 0, 0, true);
+                        msg("test - 1");
+                        delay(2000);
+                        jointsCtrl.stepsCtrlSC(254, 800, 0, 0, true);
+                        jointsCtrl.stepsCtrlSMST(254, 4000, 0, 0, true);
+                        msg("test - 2");
+                        delay(2000);
+                        jointsCtrl.stepsCtrlSC(254, 200, 0, 0, true);
+                        jointsCtrl.stepsCtrlSMST(254, 0, 0, 0, true);
+                        msg("test - 3");
+                        delay(2000);
+                        jointsCtrl.stepsCtrlSC(254, 800, 0, 0, true);
+                        jointsCtrl.stepsCtrlSMST(254, 4000, 0, 0, true);
+                        msg("test - 4");
                         break;
   
   }
@@ -1066,30 +1100,43 @@ void tud_cdc_rx_cb(uint8_t itf) {
 
 
 void serialCtrl() {
-  static String receivedData;
-
-  while (Serial0.available() > 0) {
-    char receivedChar = Serial0.read();
-    receivedData += receivedChar;
-
-    // Detect the end of the JSON string based on a specific termination character
-    if (receivedChar == '\n') {
-      // Now we have received the complete JSON string
-      DeserializationError err = deserializeJson(jsonCmdReceive, receivedData);
-      if (err == DeserializationError::Ok) {
-        if (echoMsgFlag) {
-          msg(receivedData, false);
-        }
-        jsonCmdReceiveHandler(jsonCmdReceive);
-      } else {
-        // Handle JSON parsing error here
-        msg("JSON parsing error: ", false);
-        msg(err.c_str());
-      }
-      // Reset the receivedData for the next JSON string
-      receivedData = "";
+  if (serialForwarding) {
+    // Serial0 -> Serial1
+    while (Serial.available()) {
+      int data = Serial.read();
+      Serial1.write(data);
     }
-  }
+    // Serial1 -> Serial0
+    while (Serial1.available()) {
+      int data = Serial1.read();
+      Serial.write(data);
+    }
+  } else {
+    static String receivedData;
+
+    while (Serial0.available() > 0) {
+      char receivedChar = Serial0.read();
+      receivedData += receivedChar;
+
+      // Detect the end of the JSON string based on a specific termination character
+      if (receivedChar == '\n') {
+        // Now we have received the complete JSON string
+        DeserializationError err = deserializeJson(jsonCmdReceive, receivedData);
+        if (err == DeserializationError::Ok) {
+          if (echoMsgFlag) {
+            msg(receivedData, false);
+          }
+          jsonCmdReceiveHandler(jsonCmdReceive);
+        } else {
+          // Handle JSON parsing error here
+          msg("JSON parsing error: ", false);
+          msg(err.c_str());
+        }
+        // Reset the receivedData for the next JSON string
+        receivedData = "";
+      }
+    }
+  } 
 }
 
 

@@ -26,7 +26,7 @@ public:
     bool checkStepByType(String missionName, int cmdType);
     bool checkReplaceStep(String missionName, String jsonCmd);
     String findCmdByType(String missionName, int cmdType);
-    String getValueByMissionNameAndKey(String missionName, int cmdType, String key);
+    String getValueByMissionNameAndKey(String missionName, int cmdType, String keyName);
 };
 
 #endif // FILES_CTRL_H
