@@ -9,13 +9,9 @@ CanFrame rxFrame;
 
 bool sendJsonAsCAN(const JsonDocument &docData) {
     // check json
-    if (!docData["id"].is<uint32_t>() || !docData["data"].is<JsonArray>()) {
-        msg("[ERROR] JSON missing id or data key");
-        return false;
-    }
 
     uint32_t canId = docData["id"].as<uint32_t>();
-    bool isExtended = docData["ext"].is<bool>() ? docData["ext"].as<bool>() : false;
+    bool isExtended = docData["ext"].as<bool>() ? docData["ext"].as<bool>() : false;
 
     JsonArrayConst dataArray = docData["data"];
     if (dataArray.isNull()) {

@@ -407,7 +407,7 @@ static int timeOffset = 50;
 // #define CMD_DATA_RECV_TEST 490
 
 // --- CAN DATA ---
-// {"T":501,"id": 291,"ext": false,"data": [17,34,51]}
+// {"T":501,"id":291,"ext":0,"data":[17,34,51]}
 #define CMD_CAN_SEND 501
 
 // --- System Configuration ---
