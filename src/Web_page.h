@@ -904,17 +904,17 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
 
             if (typeof jsonStringOrObject === 'string') {
                 if (!jsonStringOrObject.length) {
-                alert('NULL JSON'); return;
+                console.log('NULL JSON'); return;
                 }
                 try {
                 payloadObj = JSON.parse(jsonStringOrObject);
                 } catch (e) {
-                alert('JSON ERROR：' + e.message); return;
+                console.log('JSON ERROR：' + e.message); return;
                 }
             } else if (typeof jsonStringOrObject === 'object' && jsonStringOrObject !== null) {
                 payloadObj = jsonStringOrObject;
             } else {
-                alert('WRONG ARGS'); return;
+                console.log('WRONG ARGS'); return;
             }
 
             if (!sock || sock.readyState !== WebSocket.OPEN) {

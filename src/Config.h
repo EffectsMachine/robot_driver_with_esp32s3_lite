@@ -406,6 +406,9 @@ static int timeOffset = 50;
 // {"T":490,"mac":"FF:FF:FF:FF:FF:FF","data":"{\"T\":490}"}
 // #define CMD_DATA_RECV_TEST 490
 
+// --- CAN DATA ---
+// {"T":501,"id": 291,"ext": false,"data": [17,34,51]}
+#define CMD_CAN_SEND 501
 
 // --- System Configuration ---
 // the time for ESP32 to reboot after receiving a reboot command

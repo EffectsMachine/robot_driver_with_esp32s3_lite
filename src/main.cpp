@@ -100,6 +100,8 @@ void buttonBuzzer() {
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
+#include "Can.h"
+
 void handleWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
                    AwsEventType type, void *arg, uint8_t *data, size_t len) {
   if (type == WS_EVT_CONNECT) {
@@ -264,7 +266,8 @@ void setup() {
   digitalWrite(BUZZER_PIN, HIGH);
   buttonBuzzer();
 
-
+  // can
+  CanStart();
 
   // fake args, it will be ignored by the USB stack, default baudrate is 12Mbps
   USBSerial.begin(ESP32S3_BAUD_RATE);
@@ -1015,6 +1018,12 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   case CMD_ADD_MAC:
                         wireless.addMacToPeerString(jsonCmdInput["mac"]);
                         break;
+  
+
+
+  case CMD_CAN_SEND:
+                        sendJsonAsCAN(jsonCmdInput);
+                        break;
 
 
 
@@ -1102,14 +1111,14 @@ void tud_cdc_rx_cb(uint8_t itf) {
 void serialCtrl() {
   if (serialForwarding) {
     // Serial0 -> Serial1
-    while (Serial.available()) {
-      int data = Serial.read();
+    while (Serial0.available()) {
+      int data = Serial0.read();
       Serial1.write(data);
     }
     // Serial1 -> Serial0
     while (Serial1.available()) {
       int data = Serial1.read();
-      Serial.write(data);
+      Serial0.write(data);
     }
   } else {
     static String receivedData;
@@ -1141,7 +1150,12 @@ void serialCtrl() {
 
 
 void loop() {
+  // unsigned long startMicros = micros();
   serialCtrl();
+  receiveCANasJson();
+  // unsigned long endMicros = micros();
+  // unsigned long elapsedTime = endMicros - startMicros;
+  // Serial.println(elapsedTime);
 
 #ifdef UART0_AS_SBUS
   if (sbus.Read()) {
