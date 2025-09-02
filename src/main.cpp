@@ -226,7 +226,11 @@ void setupHttpRoutes() {
   server.addHandler(&ws);
 }
 
-
+void runMission(String missionName, int intervalTime, int loopTimes);
+void runMissionTask(void *parameter) {
+    runMission("boot_user", 0, -1);
+    vTaskDelete(NULL);
+}
 
 /**
  * @brief Setup function to initialize the device and its peripherals.
@@ -359,7 +363,16 @@ void setup() {
   ap_ip = wireless.getAPIP();
   mac_addr = wireless.getMac();
 
-  runMission("boot_user", 0, -1);
+  // runMission("boot_user", 0, -1);
+  xTaskCreatePinnedToCore(
+      runMissionTask,
+      "MissionTask", 
+      8192,            
+      NULL,            
+      1,               
+      NULL,            
+      1                
+  );
 }
 
 void delayInterruptible(int ms) {
@@ -428,7 +441,6 @@ void runMission(String missionName, int intervalTime, int loopTimes) {
     }
   }
 }
-
 
 
 void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){

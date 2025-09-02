@@ -468,9 +468,17 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                                 <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:left?")){createMission("left");}'>Left</button>
                                 <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:right?")){createMission("right");}'>Right</button>
                             </div>
-                            <div><button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px; background:red; color:white;" onclick='if (confirm("Creat a mission:right?")){createMission("boot_user");}'>On Boot</button></div>
+                            <div><button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px; background:red; color:white;" onclick='if (confirm("Creat a mission:boot_user?")){createMission("boot_user");}'>On Boot</button></div>
                             <div><button class="btn-of btn-main-m btn-all-bg" onclick="stopMission();">STOP MISSION</button></div>
                         </div>
+                        <h2 id="deleteMission">Delete Mission</h2>
+                        <div style="margin-bottom: 20px;">
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:up?")){deleteMission("up");}'>Up</button>
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:down?")){deleteMission("down");}'>Down</button>
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:left?")){deleteMission("left");}'>Left</button>
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:right?")){deleteMission("right");}'>Right</button>
+                        </div>
+                        <div><button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px; background:red; color:white;" onclick='if (confirm("Delete mission:boot_user?")){deleteMission("boot_user");}'>On Boot</button></div>
                 </div>
                 <div>
                     <div class="fb-input-info">
@@ -481,6 +489,11 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                         <div class="feedb-p">
                             <div>
                                 <textarea id="jsonData" placeholder="Input json cmd here." rows="4"></textarea>
+                            </div>
+                            <div id="toast" style="
+                                position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+                                background: rgba(0,0,0,0.75); color: #fff; padding: 8px 16px;
+                                border-radius: 6px; font-size: 14px; opacity: 0; transition: opacity 0.3s;">
                             </div>
                             <div><button class="btn-of btn-main-m btn-all-bg" onclick="jsonSend();">SEND</button></div>
                         </div>
@@ -820,8 +833,16 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
             }
         });
 
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.opacity = 1;
+            setTimeout(() => toast.style.opacity = 0, 1500);
+        }
+
         function jsonSend() {
             sendJsonCmd(document.getElementById("jsonData").value);
+            showToast("The json has been sent:\n" + document.getElementById("jsonData").value);
         }
 
         function connectWS(manual = false) {
@@ -950,6 +971,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
             };
 
             sendJsonCmd(jsonData);
+            showToast("The json has been sent:\n" + JSON.stringify(jsonData));
         }
 
         const jsonArea = document.getElementById('jsonAuto');
@@ -1014,6 +1036,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
             };
 
             sendJsonCmd(jsonData);
+            showToast("The json has been sent:\n" + JSON.stringify(jsonData));
         }
 
         function hlAdd() {
@@ -1079,6 +1102,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
             };
 
             sendJsonCmd(jsonData);
+            showToast("The json has been sent:\n" + JSON.stringify(jsonData));
         }
 
         function scAdd() {
@@ -1129,6 +1153,16 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
             sendJsonCmd(jsonData);
         }
 
+        function deleteMission(missionName) {
+            // delete mission
+            document.getElementById("AutoScropts").innerHTML = "Deleting mission...";
+            const jsonData1 = {
+                "T": 309,
+                "name": missionName
+            };
+            sendJsonCmd(jsonData1);
+        }
+
         async function createMission(missionName) {
             // delete mission
             document.getElementById("AutoScropts").innerHTML = "Deleting mission...";
@@ -1137,7 +1171,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                 "name": missionName
             };
             sendJsonCmd(jsonData1);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 101));
             // create mission
             document.getElementById("AutoScropts").innerHTML = "Creating mission...";
             const jsonData2 = {
@@ -1146,7 +1180,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                 "intro": "a mission created by web"
             };
             sendJsonCmd(jsonData2);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 101));
 
             const text = document.getElementById("jsonAuto").value;
             const lines = text.split("\n").map(line => line.trim()).filter(line => line !== "");
