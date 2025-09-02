@@ -194,7 +194,7 @@ void setupHttpRoutes() {
     req->send(200, "application/json", outputString);
   });
 
-  // cmd：POST /api/cmd  -> { "cmd":"set_pwm", "value":0..255 }
+  // cmd：POST /api/cmd  ->
   server.on("/api/cmd", HTTP_POST, [](AsyncWebServerRequest *req){},
     NULL,
     [](AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total){
