@@ -263,7 +263,8 @@ void setup() {
   msg("Device starting...");
 
   Wire.begin(IIC_SDA, IIC_SCL);
-  Wire.setClock(400000);
+  // Wire.setClock(400000);
+  Wire.setClock(100000);
 
   // buzzer
   pinMode(BUZZER_PIN, OUTPUT);
