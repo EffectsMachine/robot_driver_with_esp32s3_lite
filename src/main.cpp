@@ -25,10 +25,13 @@ Serial0 is used for UART communication
 // USBCDC USBSerial;
 DeserializationError err;
 String outputString;
+uint8_t* newCmdChar;
 JointsCtrl jointsCtrl;
 FilesCtrl filesCtrl;
 ScreenCtrl screenCtrl;
 Wireless wireless;
+
+int recvNum = 0;
 
 bool newCmdReceived = false;
 bool breakloop = false;
@@ -117,21 +120,12 @@ void handleWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
       // recv JSON
-      DeserializationError err = deserializeJson(jsonCmdReceive, data, len);
-      if (jsonCmdReceive["T"].as<int>() == CMD_BREAK_LOOP) {
+      recvNum++;
+      newCmdChar = data;
+      newCmdReceived = true;
+      if (memmem(data, len, "\"T\":0", 5) != nullptr) {
         breakloop = true;
         msg("breakloop");
-      }
-      if (err == DeserializationError::Ok) {
-        if (echoMsgFlag) {
-          serializeJson(jsonCmdReceive, outputString);
-          msg(outputString, true);
-        }
-        newCmdReceived = true;
-      } else {
-        // Handle JSON parsing error here
-        msg("JSON parsing error: ", true);
-        msg(err.c_str());
       }
     }
   }
@@ -1103,18 +1097,16 @@ void tud_cdc_rx_cb(uint8_t itf) {
     // Detect the end of the JSON string based on a specific termination character
     if (receivedChar == '\n') {
       // Now we have received the complete JSON string
-      DeserializationError err = deserializeJson(jsonCmdReceive, receivedData);
-      if (err == DeserializationError::Ok) {
-        if (echoMsgFlag) {
-          msg(receivedData, false);
-        }
-        newCmdReceived = true;
-      } else {
-        // Handle JSON parsing error here
-        msg("JSON parsing error: ", false);
-        msg(err.c_str());
+      recvNum++;
+      newCmdChar = (uint8_t*)receivedData.c_str();
+      newCmdReceived = true;
+      // Serial.println(newCmdReceived);
+      if (memmem(newCmdChar, receivedData.length(), "\"T\":0", 5) != nullptr) {
+        breakloop = true;
+        msg("breakloop");
       }
-      // Reset the receivedData for the next JSON string
+      // Serial.println(newCmdReceived);
+      delay(1);
       receivedData = "";
     }
   }
@@ -1221,11 +1213,16 @@ void loop() {
 #endif
 
   if (newCmdReceived) {
-    jsonCmdReceiveHandler(jsonCmdReceive);
+    DeserializationError err = deserializeJson(jsonCmdReceive, newCmdChar);
+    if (err == DeserializationError::Ok) {
+      jsonCmdReceiveHandler(jsonCmdReceive);
+      jsonCmdReceive.clear();
+      Serial.println(recvNum);
+      // ws.textAll(outputString);
+    }
     newCmdReceived = false;
-    jsonCmdReceive.clear();
-    ws.textAll(outputString);
   }
+  // Serial.println(newCmdReceived);
 
   pushTelemetry();
 }
