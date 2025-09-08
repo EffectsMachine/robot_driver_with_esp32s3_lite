@@ -1100,13 +1100,11 @@ void tud_cdc_rx_cb(uint8_t itf) {
       recvNum++;
       newCmdChar = (uint8_t*)receivedData.c_str();
       newCmdReceived = true;
-      // Serial.println(newCmdReceived);
       if (memmem(newCmdChar, receivedData.length(), "\"T\":0", 5) != nullptr) {
         breakloop = true;
         msg("breakloop");
       }
-      // Serial.println(newCmdReceived);
-      delay(1);
+      delay(0);
       receivedData = "";
     }
   }
@@ -1217,7 +1215,7 @@ void loop() {
     if (err == DeserializationError::Ok) {
       jsonCmdReceiveHandler(jsonCmdReceive);
       jsonCmdReceive.clear();
-      Serial.println(recvNum);
+      Serial0.println(recvNum);
       // ws.textAll(outputString);
     }
     newCmdReceived = false;

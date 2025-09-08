@@ -2,7 +2,7 @@ import serial
 import time
 import json
 
-PORT = "COM23"
+PORT = "COM16"
 BAUD = 1000000 # fake baudrate when use USB CDC
 
 ser = serial.Serial(PORT, BAUD, timeout=0.5)
