@@ -34,10 +34,6 @@
 #define BUS_SERVO_RX 5
 #define BUS_SERVO_TX 4
 
-// pin for I2C
-#define I2C_SDA 32
-#define I2C_SCL 33
-
 // pin for the buzzer
 #define BUZZER_PIN 21
 
