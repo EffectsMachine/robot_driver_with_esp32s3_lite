@@ -1,38 +1,24 @@
-import serial
-import time
+import requests
 import json
 
-PORT = "COM16"
-BAUD = 1000000 # fake baudrate when use USB CDC
+ESP32_IP = "192.168.0.105"
+PORT = 80
+URL = f"http://{ESP32_IP}:{PORT}/api/cmd"
 
-ser = serial.Serial(PORT, BAUD, timeout=0.5)
-
-def send_json(data: dict):
-    json_str = json.dumps(data) + "\n"
-    ser.write(json_str.encode("utf-8"))
-    print(f">>> Sent: {json_str.strip()}")
-
-def read_response():
+def send_json_command(payload: dict):
+    """send JSON data to ESP32"""
+    headers = {"Content-Type": "application/json"}
     try:
-        line = ser.readline().decode("utf-8").strip()
-        if line:
-            print(f"<<< Received: {line}")
-            return json.loads(line)
-    except json.JSONDecodeError:
-        print("⚠️ JSON error")
-    except Exception as e:
-        print(f"⚠️ error: {e}")
-    return None
-
-def main():
-    time.sleep(2)
-    data = {"T":202,"line":1,"text":"Hello, world!","update":1}
-    send_json(data)
-
+        response = requests.post(URL, headers=headers, data=json.dumps(payload), timeout=2)
+        print(f"status: {response.status_code}")
+        print(f"feedback: {response.text}")
+    except requests.exceptions.RequestException as e:
+        print(f"exception: {e}")
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("\nexit")
-        ser.close()
+    # example
+    data = {"T":202,
+            "line":1,
+            "text":"http cmd test",
+            "update":1}
+    send_json_command(data)

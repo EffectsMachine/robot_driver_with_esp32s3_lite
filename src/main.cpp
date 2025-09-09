@@ -153,10 +153,6 @@ void pushTelemetry() {
       } else {
         jsonFeedback["ssid"] = "Disconnected";
       }
-      // jsonFeedback["baud"]   = jointsCtrl.baudrate;
-      // jsonFeedback["sta"]   = wireless.getSTAIP();
-      // jsonFeedback["ap"]   = wireless.getAPIP();
-      // jsonFeedback["mac"]   = wireless.macToString(wireless.getMac());
       jsonFeedback["uptime"] = (uint32_t)(millis()/1000);
       serializeJson(jsonFeedback, outputString);
       ws.textAll(outputString);
@@ -192,26 +188,14 @@ void setupHttpRoutes() {
   server.on("/api/cmd", HTTP_POST, [](AsyncWebServerRequest *req){},
     NULL,
     [](AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total){
-      jsonCmdReceive.clear();
-      DeserializationError err = deserializeJson(jsonCmdReceive, data, len);
-      if (jsonCmdReceive["T"].as<int>() == CMD_BREAK_LOOP) {
+      recvNum++;
+      newCmdChar = data;
+      newCmdReceived = true;
+      if (memmem(data, len, "\"T\":0", 5) != nullptr) {
         breakloop = true;
         msg("breakloop");
       }
-      jsonFeedback.clear();
-
-      if (err == DeserializationError::Ok) {
-        if (echoMsgFlag) {
-          serializeJson(jsonCmdReceive, outputString);
-          msg(outputString, true);
-        }
-        newCmdReceived = true;
-      } else {
-        // Handle JSON parsing error here
-        msg("JSON parsing error: ", true);
-        msg(err.c_str());
-      }
-      req->send(200, "application/json", outputString);
+      req->send(200, "application/json", String(recvNum));
     }
   );
 
@@ -244,7 +228,6 @@ void setup() {
   Waits for the internal capacitors of the joints to charge.
   */
   delay(1000);
-  // delay(5000);
 
 #ifdef UART0_AS_SBUS
     sbus.Begin();
@@ -1215,12 +1198,10 @@ void loop() {
     if (err == DeserializationError::Ok) {
       jsonCmdReceiveHandler(jsonCmdReceive);
       jsonCmdReceive.clear();
-      Serial0.println(recvNum);
-      // ws.textAll(outputString);
+      ws.textAll(outputString);
     }
     newCmdReceived = false;
   }
-  // Serial.println(newCmdReceived);
 
   pushTelemetry();
 }
