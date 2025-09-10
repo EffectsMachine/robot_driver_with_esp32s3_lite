@@ -2,7 +2,7 @@ import requests
 import json
 import time
 
-ESP32_IP = "192.168.0.105"
+ESP32_IP = "192.168.0.104"
 PORT = 80
 URL = f"http://{ESP32_IP}:{PORT}/api/cmd"
 
