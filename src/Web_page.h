@@ -460,7 +460,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                         </div>
                         <div class="feedb-p">
                             <div>
-                                <textarea id="jsonAuto" placeholder="Input json cmd here." rows="4"></textarea>
+                                <textarea id="jsonAuto" placeholder="Input json cmd here." rows="4" wrap="off"></textarea>
                             </div>
                             <div style="margin-bottom: 20px;">
                                 <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:up?")){createMission("up");}'>Up</button>
@@ -488,7 +488,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                         </div>
                         <div class="feedb-p">
                             <div>
-                                <textarea id="jsonData" placeholder="Input json cmd here." rows="4"></textarea>
+                                <textarea id="jsonData" placeholder="Input json cmd here." rows="4" wrap="off"></textarea>
                             </div>
                             <div id="toast" style="
                                 position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);

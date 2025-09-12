@@ -1046,19 +1046,19 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput){
   
   case CMD_TEST:
                         jointsCtrl.setBaudRate(1000000);
-                        jointsCtrl.stepsCtrlSC(254, 200, 0, 0, true);
+                        // jointsCtrl.stepsCtrlSC(254, 200, 0, 0, true);
                         jointsCtrl.stepsCtrlSMST(254, 0, 0, 0, true);
                         msg("test - 1");
                         delay(2000);
-                        jointsCtrl.stepsCtrlSC(254, 800, 0, 0, true);
+                        // jointsCtrl.stepsCtrlSC(254, 800, 0, 0, true);
                         jointsCtrl.stepsCtrlSMST(254, 4000, 0, 0, true);
                         msg("test - 2");
                         delay(2000);
-                        jointsCtrl.stepsCtrlSC(254, 200, 0, 0, true);
+                        // jointsCtrl.stepsCtrlSC(254, 200, 0, 0, true);
                         jointsCtrl.stepsCtrlSMST(254, 0, 0, 0, true);
                         msg("test - 3");
                         delay(2000);
-                        jointsCtrl.stepsCtrlSC(254, 800, 0, 0, true);
+                        // jointsCtrl.stepsCtrlSC(254, 800, 0, 0, true);
                         jointsCtrl.stepsCtrlSMST(254, 4000, 0, 0, true);
                         msg("test - 4");
                         break;

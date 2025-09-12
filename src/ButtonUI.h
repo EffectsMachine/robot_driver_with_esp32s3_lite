@@ -34,6 +34,8 @@ void buttonEventHandler(event_t e, const EventMsg* m){
             } else if (m->gpio == BUTTON_RIGHT){
                 buttonBuzzer();
                 runMission("right", 0, 1);
+            } else if (m->gpio == BUTTON_OK){
+                buttonBuzzer();
             }
             break;
     }
