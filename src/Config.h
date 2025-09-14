@@ -4,6 +4,9 @@
 // #define DEV_TYPE_LINKARM_LT
 // #define DEV_TYPE_SBUS_UGV_A
 
+// === Test Machine ===
+// #define CAN_BUS_MACHINE
+
 // --- Auto Conrfiguration ---
 #ifdef DEV_TYPE_RD_LITE
 #define USE_HUB_MOTORS

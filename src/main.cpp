@@ -351,6 +351,11 @@ void setup() {
       NULL,            
       1                
   );
+
+#ifdef CAN_BUS_MACHINE
+  screenCtrl.init();
+  screenCtrl.displayText("CAN-TEST", 0, 0, 4);
+#endif
 }
 
 void delayInterruptible(int ms) {
@@ -1204,5 +1209,9 @@ void loop() {
   }
 
   pushTelemetry();
+
+#ifdef CAN_BUS_MACHINE
+  canTestMachine();
+#endif
 }
 

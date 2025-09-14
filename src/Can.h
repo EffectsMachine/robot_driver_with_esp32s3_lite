@@ -5,6 +5,9 @@
 #define CAN_TX 14
 #define CAN_RX 13
 
+#define CMD_ID   0x100   // A -> B
+#define RESP_ID  0x101   // B -> A
+
 CanFrame rxFrame;
 
 bool sendJsonAsCAN(const JsonDocument &docData) {
@@ -51,6 +54,38 @@ bool sendJsonAsCAN(const JsonDocument &docData) {
     return true;
 }
 
+bool sendCANFrame(uint32_t canId, bool isExtended, const uint8_t *data, uint8_t len) {
+    if (len > 8) {
+        Serial.println("[ERROR] data length > 8");
+        return false;
+    }
+
+    twai_message_t frame = {};
+    frame.identifier = canId;
+    frame.extd = isExtended;
+    frame.data_length_code = len;
+
+    for (uint8_t i = 0; i < len; i++) {
+        frame.data[i] = data[i];
+    }
+
+    esp_err_t result = twai_transmit(&frame, pdMS_TO_TICKS(100));
+    if (result != ESP_OK) {
+        Serial.printf("[ERROR] CAN send failed, code: %d\n", result);
+        return false;
+    }
+
+    Serial.print("[SEND] ID: 0x");
+    Serial.print(canId, HEX);
+    Serial.print(" Data: ");
+    for (uint8_t i = 0; i < len; i++) {
+        Serial.printf("%02X ", frame.data[i]);
+    }
+    Serial.println();
+
+    return true;
+}
+
 bool receiveCANasJson() {
     twai_message_t rxFrame;
     // timeout = 0 ticks
@@ -74,8 +109,26 @@ bool receiveCANasJson() {
     msg(outputString);
     ws.textAll(outputString);
 
+    uint8_t resp[1] = {0xAA};
+    sendCANFrame(0x101, false, resp, 1);
+
     return true;
 }
+
+void canTestMachine() {
+  uint8_t data[1] = {0x55};
+  // id, ext, data, len
+  sendCANFrame(0x100, false, data, 1);
+  delay(1000);
+  // twai_message_t rxFrame;
+  if (twai_receive(&rxFrame, pdMS_TO_TICKS(500)) == ESP_OK) {
+      if (rxFrame.identifier == RESP_ID && rxFrame.data[0] == 0xAA) {
+          Serial.println("[A] Got response 0xAA, buzzing!");
+          buttonBuzzer();
+      }
+  }
+}
+
 
 void CanStart() {
   // Set pins
