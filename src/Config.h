@@ -114,6 +114,13 @@ static int timeOffset = 50;
 // jointsCtrl.feedbackSTSM(u_int8_t id, bool state);
 #define CMD_STSM_FEEDBACK 15
 
+// {"T":16,"id":[1,2],"pos":[2047,2047],"spd":[0,0],"acc":[0,0],"move":1}
+// jointsCtrl.syncCtrl(u_int8_t* id, int*)
+#define CMD_STSM_SYNC_CTRL 16
+
+// {"T":17}
+#define CMD_STSM_TRIGGER 17
+
 
 
 /// --- --- --- < HL Servo > --- --- ---
