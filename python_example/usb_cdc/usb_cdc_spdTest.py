@@ -2,7 +2,7 @@ import serial
 import time
 import json
 
-PORT = "COM16"
+PORT = "COM11"
 BAUD = 1000000 # fake baudrate when use USB CDC
 
 TOTAL_MESSAGES = 100000

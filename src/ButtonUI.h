@@ -75,6 +75,7 @@ void menu_init_RD() {
     menu.assign(BUTTON_DOWN, 0, buttonEventHandler);
     menu.assign(BUTTON_LEFT, 0, buttonEventHandler);
     menu.assign(BUTTON_RIGHT, 0, buttonEventHandler);
+    menu.assign(BUTTON_OK, 0, buttonEventHandler);
 
     bUp.enable();
     bDown.enable();
