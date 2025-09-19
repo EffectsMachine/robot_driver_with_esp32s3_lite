@@ -2,7 +2,7 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/effectsmachine/robot_driver_with_esp32s3_lite)
 ![GitHub repo size](https://img.shields.io/github/repo-size/effectsmachine/robot_driver_with_esp32s3_lite) ![GitHub](https://img.shields.io/github/license/effectsmachine/robot_driver_with_esp32s3_lite) ![GitHub last commit](https://img.shields.io/github/last-commit/effectsmachine/robot_driver_with_esp32s3_lite)
 
-![](./README/EN_01.jpg)
+<img src="./README/EN_01.jpg" width="400">
 ![](./README/EN_02.jpg)
 
 # Quick Start Guide
