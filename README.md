@@ -2,7 +2,7 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/effectsmachine/robot_driver_with_esp32s3_lite)
 ![GitHub repo size](https://img.shields.io/github/repo-size/effectsmachine/robot_driver_with_esp32s3_lite) ![GitHub](https://img.shields.io/github/license/effectsmachine/robot_driver_with_esp32s3_lite) ![GitHub last commit](https://img.shields.io/github/last-commit/effectsmachine/robot_driver_with_esp32s3_lite)
 
-<img src="./README/EN_01.jpg" width="400">
+![](./README/EN_01.jpg)
 ![](./README/EN_02.jpg)
 
 # Quick Start Guide
@@ -78,7 +78,7 @@ No extra software is needed—just connect with a smartphone or PC browser to ac
     - Enter: `192.168.4.1`
     - The Web control interface will appear.
         
-        ![](./README/1.png)
+        <img src="./README/1.jpg" width="400">
         
 4. **Connect to Existing Wi-Fi (STA mode)**
     - Open **Wi-Fi Setting** in the Web App.
@@ -94,7 +94,7 @@ Below are the main modules inside the Web App.
 
 ### Device Info
 
-![](./README/2.png)
+<img src="./README/2.jpg" width="400">
 
 - Displays real-time system information.
 - Communication uses **WebSocket** (a low-latency protocol). `Uptime` increases every second if the system is running normally.
@@ -114,7 +114,7 @@ Below are the main modules inside the Web App.
 
 In the Web App:
 
-![](./README/3.png)
+<img src="./README/3.jpg" width="400">
 
 - **AP_SSID / AP_PWD** – Configure the hotspot name & password (defaults: `Robot` / `12345678`).
 - **STA_STATUS** – Shows the connected Wi-Fi SSID and IP (blank if not connected).
@@ -124,7 +124,7 @@ In the Web App:
 
 ### Servo Control
 
-![](./README/4.png)
+<img src="./README/4.jpg" width="400">
 
 Supports Feetech servos (STS, SMS, HLS, SCS).
 
@@ -140,9 +140,9 @@ Supports Feetech servos (STS, SMS, HLS, SCS).
 - **Change ID** – Assigns a new ID.
 - **Delay(ms)** – Insert time gaps between commands (important for scripted actions).
 
-![](./README/5.png)
+<img src="./README/5.jpg" width="400">
 
-![](./README/6.png)
+<img src="./README/6.jpg" width="400">
 
 HLS and SCS servo panels provide similar controls, with model-specific features such as **Current Limit** (HLS) and **Time (ms)** (SCS).
 
@@ -150,7 +150,7 @@ HLS and SCS servo panels provide similar controls, with model-specific features 
 
 ### Automation Scripts
 
-![](./README/7.png)
+<img src="./README/7.jpg" width="400">
 
 Enables multi-servo choreography.
 
@@ -162,7 +162,7 @@ Enables multi-servo choreography.
 - **STOP MISSION** – Stops the currently running mission.
 - **Delete Mission** – Removes stored tasks.
 
-![](./README/8.png)
+<img src="./README/8.jpg" width="400">
 
 Example: Script four servos with sequential moves by inserting JSON lines separated by line breaks.
 
@@ -170,7 +170,7 @@ Example: Script four servos with sequential moves by inserting JSON lines separa
 
 ### JSON Command Interface
 
-![](./README/9.png)
+<img src="./README/9.jpg" width="400">
 
 JSON is the universal control method of the Driver Board.
 
