@@ -6,13 +6,13 @@
 ![](./README/EN_02.jpg)
 
 # Quick Start Guide
->💡
->This guide is for the **Robot Driver with ESP32S3 Lite** (referred to as **the Driver Board**).
->It is designed for first-time users and will help you get started quickly:
+This guide is for the **Robot Driver with ESP32S3 Lite** (referred to as **the Driver Board**).
 
->- Learn the basics of the built-in Web App
->- Control Feetech bus servos (STS / HLS / SMS / SCS, via TTL single-wire or RS485) using example routines
->- Extend later to LYgion hub motors and joint actuators (via CAN bus)
+It is designed for first-time users and will help you get started quickly:
+
+- Learn the basics of the built-in Web App
+- Control Feetech bus servos (STS / HLS / SMS / SCS, via TTL single-wire or RS485) using example routines
+- Extend later to LYgion hub motors and joint actuators (via CAN bus)
 
 ## Product Overview
 
@@ -106,16 +106,11 @@ Below are the main modules inside the Web App.
 ---
 
 ### Wi-Fi Settings
-
-<aside>
-💡
-
  **Wi-Fi Modes of ESP32-S3**
 
 - **AP Mode (Access Point)** – The board acts as a Wi-Fi hotspot (default SSID `Robot`). Devices connect directly, and the board is accessed at `192.168.4.1`.
 - **STA Mode (Station)** – The board joins your existing Wi-Fi, and you access it via the router-assigned IP.
 - **Mixed Mode** – Both AP + STA run at the same time (default firmware behavior).
-</aside>
 
 In the Web App:
 
