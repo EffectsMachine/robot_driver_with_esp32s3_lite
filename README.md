@@ -78,7 +78,7 @@ No extra software is needed—just connect with a smartphone or PC browser to ac
     - Enter: `192.168.4.1`
     - The Web control interface will appear.
         
-        ![](./README/1.png | width=400)
+        ![](./README/1.png)
         
 4. **Connect to Existing Wi-Fi (STA mode)**
     - Open **Wi-Fi Setting** in the Web App.
@@ -94,7 +94,7 @@ Below are the main modules inside the Web App.
 
 ### Device Info
 
-![](./README/2.png | width=400)
+![](./README/2.png)
 
 - Displays real-time system information.
 - Communication uses **WebSocket** (a low-latency protocol). `Uptime` increases every second if the system is running normally.
@@ -114,7 +114,7 @@ Below are the main modules inside the Web App.
 
 In the Web App:
 
-![](./README/3.png | width=400)
+![](./README/3.png)
 
 - **AP_SSID / AP_PWD** – Configure the hotspot name & password (defaults: `Robot` / `12345678`).
 - **STA_STATUS** – Shows the connected Wi-Fi SSID and IP (blank if not connected).
@@ -124,7 +124,7 @@ In the Web App:
 
 ### Servo Control
 
-![](./README/4.png | width=400)
+![](./README/4.png)
 
 Supports Feetech servos (STS, SMS, HLS, SCS).
 
@@ -140,9 +140,9 @@ Supports Feetech servos (STS, SMS, HLS, SCS).
 - **Change ID** – Assigns a new ID.
 - **Delay(ms)** – Insert time gaps between commands (important for scripted actions).
 
-![](./README/5.png | width=400)
+![](./README/5.png)
 
-![](./README/6.png | width=400)
+![](./README/6.png)
 
 HLS and SCS servo panels provide similar controls, with model-specific features such as **Current Limit** (HLS) and **Time (ms)** (SCS).
 
@@ -150,7 +150,7 @@ HLS and SCS servo panels provide similar controls, with model-specific features 
 
 ### Automation Scripts
 
-![](./README/7.png | width=400)
+![](./README/7.png)
 
 Enables multi-servo choreography.
 
@@ -162,7 +162,7 @@ Enables multi-servo choreography.
 - **STOP MISSION** – Stops the currently running mission.
 - **Delete Mission** – Removes stored tasks.
 
-![](./README/8.png | width=400)
+![](./README/8.png)
 
 Example: Script four servos with sequential moves by inserting JSON lines separated by line breaks.
 
@@ -170,7 +170,7 @@ Example: Script four servos with sequential moves by inserting JSON lines separa
 
 ### JSON Command Interface
 
-![](./README/9.png | width=400)
+![](./README/9.png)
 
 JSON is the universal control method of the Driver Board.
 
