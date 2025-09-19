@@ -6,7 +6,7 @@
 ![](./README/EN_02.jpg)
 
 # Quick Start Guide
-<aside>
+'''
 💡
 
 This guide is for the **Robot Driver with ESP32S3 Lite** (referred to as **the Driver Board**).
@@ -16,7 +16,7 @@ It is designed for first-time users and will help you get started quickly:
 - Learn the basics of the built-in Web App
 - Control Feetech bus servos (STS / HLS / SMS / SCS, via TTL single-wire or RS485) using example routines
 - Extend later to LYgion hub motors and joint actuators (via CAN bus)
-</aside>
+'''
 
 ## Product Overview
 
