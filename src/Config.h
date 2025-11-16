@@ -1,7 +1,7 @@
 // === Select Devive Type ===
 // === Only One Device Type Can Be Selected ===
-#define DEV_TYPE_RD_LITE
-// #define DEV_TYPE_LINKARM_LT
+// #define DEV_TYPE_RD_LITE
+#define DEV_TYPE_LINKARM_LT
 // #define DEV_TYPE_SBUS_UGV_A
 
 // === Test Machine ===
@@ -268,7 +268,7 @@ static int timeOffset = 50;
 #define CMD_SET_LINK_ARM_ZERO 133
 
 // {"T":134,"ang":[0,0,0,0]}
-// gripper: -45-grip, +25-release 
+// gripper: 0-grip, +50-release 
 // jointsCtrl.linkArmSCJointsCtrlAngle(double angles[]);
 #define CMD_LINK_ARM_SC_JOINTS_CTRL_ANGLE 134
 
@@ -276,11 +276,11 @@ static int timeOffset = 50;
 // jointsCtrl.linkArmSCJointsCtrlRad(double rads[]);
 #define CMD_LINK_ARM_SC_JOINTS_CTRL_RAD 135
 
-// {"T":136,"xyzg":[236.5,0,122.38,0]}
+// {"T":136,"xyzg":[260.5,0,122.38,50]}
 // jointsCtrl.linkArmSpaceIK(double x, double y, double z, double g);
 #define CMD_XYZG_CTRL 136
 
-// {"T":137,"rbzg":[236.5,0,122.38,0]}
+// {"T":137,"rbzg":[260.5,0,122.38,50]}
 // jointsCtrl.linkArmFPVIK(double r, double b, double z, double g);
 #define CMD_FPV_ABS_CTRL 137
 
@@ -315,11 +315,18 @@ static int timeOffset = 50;
 // {"T":145,"flag":0,"hz":10}
 #define CMD_SET_LINK_ARM_FEEDBACK_FLAG 145
 
+// {"T":146,"flag":0,"axis":0,"delta":0.01}
+#define CMD_CONST_CTRL 146
+
+// {"T":147}
+#define CMD_JOINT_CALIB 147
+
 
 // steps * 0.06 = rpm
 // {"T":180,"A":0,"B":0,"C":0,"D":0}
 // jointsCtrl.hubMotorCtrl(0, 0, 0, 0);
 #define CMD_HUB_MOTOR_CTRL 180
+
 
 
 // id 1 -> left LED

@@ -70,8 +70,7 @@ class JointsCtrl {
         // [2] shoulder-rear rad
         // [3] eoat-pitch rad
         double armIKRad[JOINTS_NUM]; // array to store the IK radian of each joint
-        double xyzgIK[JOINTS_NUM + 1]; // array to store the IK pos of each joint
-        double rbzgIK[JOINTS_NUM + 1]; // array to store the IK pos of FPV Ctrl
+
         // smooth ctrl
         double xyzgIK_last[JOINTS_NUM + 1]; // array to store the last IK pos of each joint
         double rbzgIK_last[JOINTS_NUM + 1]; // array to store the last IK pos of FPV Ctrl
@@ -113,6 +112,9 @@ class JointsCtrl {
 
     public:
         // for applications: LyLinkArm
+        double xyzgIK[JOINTS_NUM + 1]; // array to store the IK pos of each joint
+        double rbzgIK[JOINTS_NUM + 1]; // array to store the IK pos of FPV Ctrl
+
         int jointsZeroPos[JOINTS_NUM]; // array to store the zero position of each joint
         int jointsFeedbackPos[JOINTS_NUM]; // array to store the feedback position from each joint
         int jointsFeedbackTorque[JOINTS_NUM]; // array to store the feedback torque from each joint
@@ -147,18 +149,28 @@ class JointsCtrl {
 #else
         bool linkArmFeedbackFlag = false;
 #endif
-        int linkArmFeedbackHz = 1000; // link arm feedback Hz (reference)
+        int linkArmFeedbackHz = 10; // link arm feedback Hz (reference)
 
         unsigned int baudrate = 1000000;
         bool fineTuningMode = false;
         bool torqueLockMode = true;
         bool espnowLeader = false;
         bool sbusCtrl = false;
+        // bool sbusCtrl = true;
 
-        double fpv_r = 260.5;
-        double fpv_b = 0;
-        double fpv_z = 122.38;
-        double fpv_g = 0;
+        bool constantCtrlFlag = false;
+        int constantCtrlAxis = -1;
+        double constantCtrldDelta = 0; 
+
+        double fpv_r = 260.5;   // axis:1 rbzgIK[1] = r;
+        double fpv_b = 0;       // axis:2 rbzgIK[2] = b;
+        double fpv_z = 122.38;  // axis:3 rbzgIK[3] = z;
+        double fpv_g = 0;       // axis:4 rbzgIK[4] = g;
+
+        double cart_x = 260.5;  // axis:11 xyzgIK[1] = x;
+        double cart_y = 0;      // axis:12 xyzgIK[2] = y;
+        double cart_z = 122.38; // axis:13 xyzgIK[3] = z;
+        double cart_g = 0;      // axis:14 xyzgIK[4] = g;
 
         void init(int baud);
         void setBaudRate(int baud);
@@ -240,6 +252,9 @@ class JointsCtrl {
         double getMaxJointsSpeed() { return jointsMaxSpeed; }
         void setLinkArmFeedbackFlag(bool flag, int hz);
         bool linkArmPlaneFK(double alpha, double beta, double& x, double& z);
+        
+        bool constantCtrl(bool flag, int axis, double delta);
+        void constantCtrlLoop();
 
         void ttlTestMachine();
     };

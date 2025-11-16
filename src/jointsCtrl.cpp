@@ -530,10 +530,6 @@ void JointsCtrl::moveTrigger() {
 // hub motor ctrl
 void JointsCtrl::hubMotorCtrl(int spd_1, int spd_2, int spd_3, int spd_4) {
 #ifdef USE_HUB_MOTORS
-    // gqdmd.SpeedCtl(1, spd_1, 500, 600, 200);
-    // gqdmd.SpeedCtl(2, spd_2, 500, 600, 200);
-    // gqdmd.SpeedCtl(3, spd_3, 500, 600, 200);
-    // gqdmd.SpeedCtl(4, spd_4, 500, 600, 200);
     gqdmd.SpeedCtl(1, spd_1, 500, 600, 0, 0x10);
     gqdmd.SpeedCtl(2, spd_2, 500, 600, 0, 0x10);
     gqdmd.SpeedCtl(3, spd_3, 500, 600, 0, 0x10);
@@ -687,9 +683,7 @@ void JointsCtrl::FPVIK2spaceIK() {
 }
 
 double* JointsCtrl::linkArmSpaceIK(double x, double y, double z, double g) {
-    if (g < GRIPPER_CLOSE) {
-        g = 0;
-    }
+    g = (g < GRIPPER_CLOSE) ? GRIPPER_CLOSE : (g > GRIPPER_OPEN) ? GRIPPER_OPEN : g;
     double armIKRad_0 = atan2(-y, x);
     if (armIKRad_0 >= jointMaxRads[1] || armIKRad_0 <= jointMinRads[1]) {
         xyzgIK[0] = -1;
@@ -720,9 +714,7 @@ double* JointsCtrl::linkArmSpaceIK(double x, double y, double z, double g) {
 }
 
 double* JointsCtrl::linkArmFPVIK(double r, double b, double z, double g) {
-    if (g < GRIPPER_CLOSE) {
-        g = 0;
-    }
+    g = (g < GRIPPER_CLOSE) ? GRIPPER_CLOSE : (g > GRIPPER_OPEN) ? GRIPPER_OPEN : g;
     if (b >= jointMaxRads[1] || b <= jointMinRads[1]) {
         rbzgIK[0] = -1;
         FPVIK2spaceIK();
@@ -878,6 +870,58 @@ bool JointsCtrl::linkArmPlaneFK(double alpha, double beta, double& x, double& z)
 
     ik_status = true;
     return true;
+}
+
+bool JointsCtrl::constantCtrl(bool flag, int axis, double delta) {
+    constantCtrlFlag = flag;
+    constantCtrlAxis = axis;
+    constantCtrldDelta = delta;
+    return true;
+}
+
+void JointsCtrl::constantCtrlLoop() {
+    if (!constantCtrlFlag) {
+        return;
+    } else if (constantCtrlFlag) {
+        switch(constantCtrlAxis) {
+            case -1: return; break;
+
+            case  1: 
+                    cart_x = xyzgIK[1] + constantCtrldDelta;
+                    linkArmSpaceIK(cart_x, xyzgIK[2], xyzgIK[3], xyzgIK[4]);
+                    break;
+            case  2:
+                    cart_y = xyzgIK[2] + constantCtrldDelta;
+                    linkArmSpaceIK(xyzgIK[1], cart_y, xyzgIK[3], xyzgIK[4]);
+                    break;
+            case  3:
+                    cart_z = xyzgIK[3] + constantCtrldDelta;
+                    linkArmSpaceIK(xyzgIK[1], xyzgIK[2], cart_z, xyzgIK[4]);
+                    break;
+            case  4:
+                    cart_g = xyzgIK[4] + constantCtrldDelta;
+                    linkArmSpaceIK(xyzgIK[1], xyzgIK[2], xyzgIK[3], cart_g);
+                    break;
+
+            case  11: 
+                    fpv_r = rbzgIK[1] + constantCtrldDelta;
+                    linkArmFPVIK(fpv_r, rbzgIK[2], rbzgIK[3], rbzgIK[4]);
+                    break;
+            case  12:
+                    fpv_b = rbzgIK[2] + constantCtrldDelta;
+                    linkArmFPVIK(rbzgIK[1], fpv_b, rbzgIK[3], rbzgIK[4]);
+                    break;
+            case  13:
+                    fpv_z = rbzgIK[3] + constantCtrldDelta;
+                    linkArmFPVIK(rbzgIK[1], rbzgIK[2], fpv_z, rbzgIK[4]);
+                    break;
+            case  14:
+                    fpv_g = rbzgIK[4] + constantCtrldDelta;
+                    linkArmFPVIK(rbzgIK[1], rbzgIK[2], rbzgIK[3], fpv_g);
+                    break;
+        }
+    }
+
 }
 
 void JointsCtrl::ttlTestMachine() {

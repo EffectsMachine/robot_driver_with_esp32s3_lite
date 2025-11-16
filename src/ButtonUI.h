@@ -20,17 +20,21 @@ bool settingLeader = false;
 void menuTorqueOff() {
     espnowMode = 0;
     wireless.setEspNowMode(0);
-    jointsCtrl.allLedCtrl(40, 255, 32, 0);
-    jointsCtrl.torqueLock(254, 0);
+    addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[255,32,0]}");
+    // jointsCtrl.allLedCtrl(40, 255, 32, 0);
+    addJsonCmd2Queue("{\"T\":34,\"id\":254,\"state\":0}");
+    // jointsCtrl.torqueLock(254, 0);
     jointsCtrl.torqueLockMode = false;
     settingLeader = true;
     screenCtrl.clearDisplay();
     screenCtrl.changeSingleLine(1, "TorqueLock <OFF>", 0);
     if (jointsCtrl.espnowLeader) {
-        jointsCtrl.allLedCtrl(40, 0, 32, 255);
+        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,32,255]}");
+        // jointsCtrl.allLedCtrl(40, 0, 32, 255);
         screenCtrl.changeSingleLine(2, "Leader BRD <ON>", 0);
     } else {
-        jointsCtrl.allLedCtrl(40, 0, 0, 0);
+        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,0,0]}");
+        // jointsCtrl.allLedCtrl(40, 0, 0, 0);
         screenCtrl.changeSingleLine(2, "Leader BRD <OFF>", 0);
     }
     screenCtrl.changeSingleLine(3, "longPress-L: ON", 0);
@@ -42,21 +46,26 @@ void menuDefault() {
     String line_2 = "MAC:" + wireless.getMac();
     String line_3;
     if (espnowMode == 0) {
-        jointsCtrl.allLedCtrl(40, 0, 0, 0);
+        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,0,0]}");
+        // jointsCtrl.allLedCtrl(40, 0, 0, 0);
         line_3 = "ESP-NOW <OFF>";
     } else if (espnowMode == 1) {
-        jointsCtrl.allLedCtrl(40, 64, 0, 255);
+        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[64,0,255]}");
+        // jointsCtrl.allLedCtrl(40, 64, 0, 255);
         line_3 = "ESP-NOW <ON> KnownMAC";
     } else if (espnowMode == 2) {
-        jointsCtrl.allLedCtrl(40, 64, 0, 255);
+        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[64,0,255]}");
+        // jointsCtrl.allLedCtrl(40, 64, 0, 255);
         line_3 = "ESP-NOW <ON> BRD MAC";
     }
     String line_4;
     if (jointsCtrl.espnowLeader) {
-        jointsCtrl.allLedCtrl(40, 0, 32, 255);
+        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,32,255]}");
+        // jointsCtrl.allLedCtrl(40, 0, 32, 255);
         line_4 = "BRD Leader <ON>";
     } else {
-        jointsCtrl.allLedCtrl(40, 0, 0, 0);
+        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,0,0]}");
+        // jointsCtrl.allLedCtrl(40, 0, 0, 0);
         line_4 = "BRD Leader <OFF>";
     }
     screenCtrl.changeSingleLine(1, line_1, 0);
@@ -74,11 +83,11 @@ void buttonEventHandler(event_t e, const EventMsg* m){
                 buttonBuzzer();
                 menuTorqueOff();
             } else if (m->gpio == BUTTON_DOWN){
-                if (!jointsCtrl.checkStatus()) {
-                    return;
-                }
                 buttonBuzzer();
                 if (jointsCtrl.fineTuningMode) {
+                    if (!jointsCtrl.checkStatus()) {
+                        return;
+                    }
                     jointsCtrl.setCurrentSCPosMiddle();
                     if (jointsCtrl.jointsZeroPos[0] == -1 || jointsCtrl.jointsZeroPos[1] == -1 || jointsCtrl.jointsZeroPos[2] == -1 || jointsCtrl.jointsZeroPos[3] == -1) {
                         return;
@@ -96,8 +105,10 @@ void buttonEventHandler(event_t e, const EventMsg* m){
                 } 
                 settingLeader = false;
                 jointsCtrl.espnowLeader = false;
-                jointsCtrl.allLedCtrl(40, 0, 0, 0);
-                jointsCtrl.torqueLock(254, 1);
+                addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,0,0]}");
+                // jointsCtrl.allLedCtrl(40, 0, 0, 0);
+                addJsonCmd2Queue("{\"T\":34,\"id\":254,\"state\":1}");
+                // jointsCtrl.torqueLock(254, 1);
                 menuDefault();
             } else if (m->gpio == BUTTON_LEFT) {
                 buttonBuzzer();
@@ -105,10 +116,12 @@ void buttonEventHandler(event_t e, const EventMsg* m){
                     jointsCtrl.espnowLeader = true;
                     screenCtrl.changeSingleLine(1, "TorqueLock <OFF>", 0);
                     if (jointsCtrl.espnowLeader) {
-                        jointsCtrl.allLedCtrl(40, 0, 32, 255);
+                        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,32,255]}");
+                        // jointsCtrl.allLedCtrl(40, 0, 32, 255);
                         screenCtrl.changeSingleLine(2, "Leader BRD <ON>", 0);
                     } else {
-                        jointsCtrl.allLedCtrl(40, 0, 0, 0);
+                        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,0,0]}");
+                        // jointsCtrl.allLedCtrl(40, 0, 0, 0);
                         screenCtrl.changeSingleLine(2, "Leader BRD <OFF>", 0);
                     }
                     screenCtrl.changeSingleLine(3, "longPress-L: ON", 0);
@@ -129,10 +142,12 @@ void buttonEventHandler(event_t e, const EventMsg* m){
                     jointsCtrl.espnowLeader = false;
                     screenCtrl.changeSingleLine(1, "TorqueLock <OFF>", 0);
                     if (jointsCtrl.espnowLeader) {
-                        jointsCtrl.allLedCtrl(40, 0, 32, 255);
+                        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,32,255]}");
+                        // jointsCtrl.allLedCtrl(40, 0, 32, 255);
                         screenCtrl.changeSingleLine(2, "Leader BRD <ON>", 0);
                     } else {
-                        jointsCtrl.allLedCtrl(40, 0, 0, 0);
+                        addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,0,0]}");
+                        // jointsCtrl.allLedCtrl(40, 0, 0, 0);
                         screenCtrl.changeSingleLine(2, "Leader BRD <OFF>", 0);
                     }
                     screenCtrl.changeSingleLine(3, "longPress-L: ON", 0);
@@ -140,11 +155,11 @@ void buttonEventHandler(event_t e, const EventMsg* m){
                 } else {
                     espnowMode = 0;
                     wireless.setEspNowMode(espnowMode);
-                    jointsCtrl.allLedCtrl(40, 0, 0, 0);
+                    addJsonCmd2Queue("{\"T\":201,\"id\":40,\"set\":[0,0,0]}");
+                    // jointsCtrl.allLedCtrl(40, 0, 0, 0);
                     menuDefault();
                 }
             }
-
     }
 #else
     switch(e){
