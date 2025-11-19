@@ -10,7 +10,7 @@
 #include <ArduinoJson.h>
 
 
-#define ESP_NOW_SYNC // comment this out to use ESP-NOW for JSON communication
+// #define ESP_NOW_SYNC // comment this out to use ESP-NOW for JSON communication
 
 typedef std::array<uint8_t, 6> MacAddress;
 
