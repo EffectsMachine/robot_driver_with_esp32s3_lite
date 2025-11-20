@@ -249,6 +249,9 @@ static int timeOffset = 50;
 // jointsCtrl.moveTrigger();
 #define CMD_MOVE_TRIGGER 118
 
+// {"T":119,"id":1,"limit":500}
+// jointsCtrl.setTorqueLimitSC(u_int8_t id, int limit)
+#define CMD_TORQUE_LIMIT 119
 
 // --- --- --- for applications: LyLinkArm --- --- ---
 // {"T":130}

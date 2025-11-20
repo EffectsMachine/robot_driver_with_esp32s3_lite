@@ -620,6 +620,13 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                             </div>
                             <div class="info-box json-cmd-info">
                                 <div>
+                                    <p>CMD_TORQUE_LIMIT</p>
+                                    <p class="cmd-value">{"T":119,"id":1,"limit":500}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
                                     <p>CMD_DISPLAY_SINGLE</p>
                                     <p class="cmd-value">{"T":202,"line":1,"text":"Hello, world!","update":1}</p>
                                 </div>

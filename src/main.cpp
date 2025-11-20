@@ -770,7 +770,10 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput) {
   case CMD_MOVE_TRIGGER:
                         jointsCtrl.moveTrigger();
                         break;
-
+  case CMD_TORQUE_LIMIT:
+                        jointsCtrl.setTorqueLimitSC(jsonCmdInput["id"],
+                                                    jsonCmdInput["limit"]);
+                        break;
 
 
   // --- --- --- for applications: LyLinkArm --- --- ---

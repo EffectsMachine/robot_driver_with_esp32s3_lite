@@ -229,6 +229,7 @@ class JointsCtrl {
         bool checkStatus();
         int* getLinkArmTorqueSC();
         void setCurrentSCPosMiddle();
+        void setTorqueLimitSC(u_int8_t id, int limit);
         void linkArmSCJointsCtrlAngle(double angles[]);
         void linkArmSCJointsCtrlRad(double rads[]);
 

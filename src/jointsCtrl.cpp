@@ -596,6 +596,13 @@ void JointsCtrl::setCurrentSCPosMiddle() {
     }
 }
 
+void JointsCtrl::setTorqueLimitSC(u_int8_t id, int limit) {
+    limit = (limit < 0) ? 0 : (limit > 1000) ? 1000 : limit;
+    sc.unLockEprom(id);
+    sc.writeByte(id, 16, limit);
+    sc.LockEprom(id);
+}
+
 // for applications: LyLinkArm
 // joint_1 : as the base joint
 // joint_2 : as the shoulder joint (base front)
