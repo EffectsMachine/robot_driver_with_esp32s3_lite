@@ -588,6 +588,28 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput) {
                           msg(outputString);
                         }
                         break;
+  case CMD_STSM_SYNC_CTRL:{
+                        JsonArrayConst id  = jsonCmdInput["id"].as<JsonArrayConst>();
+                        JsonArrayConst pos = jsonCmdInput["pos"].as<JsonArrayConst>();
+                        JsonArrayConst spd = jsonCmdInput["spd"].as<JsonArrayConst>();
+                        JsonArrayConst acc = jsonCmdInput["acc"].as<JsonArrayConst>();
+
+                        int idn = jsonCmdInput["idn"].as<int>();
+
+                        jointsCtrl.jsonSyncCtrlSMST(id, idn, pos, spd, acc);
+                        break;
+  }
+  case CMD_STSM_SYNC_SIMPLE_CTRL:{
+                        JsonArrayConst id  = jsonCmdInput["id"].as<JsonArrayConst>();
+                        JsonArrayConst pos = jsonCmdInput["pos"].as<JsonArrayConst>();
+
+                        int idn = jsonCmdInput["idn"].as<int>();
+
+                        jointsCtrl.jsonSyncSimpleCtrlSMST(id, idn, pos);
+                        break;
+  }
+
+
 
   case CMD_HL_CTRL:
                         jointsCtrl.stepsCtrlHL(jsonCmdInput["id"],
@@ -629,6 +651,31 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput) {
                           msg(outputString);
                         }
                         break;
+  case CMD_HL_SYNC_CTRL:{
+                        JsonArrayConst id  = jsonCmdInput["id"].as<JsonArrayConst>();
+                        JsonArrayConst pos = jsonCmdInput["pos"].as<JsonArrayConst>();
+                        JsonArrayConst spd = jsonCmdInput["spd"].as<JsonArrayConst>();
+                        JsonArrayConst acc = jsonCmdInput["acc"].as<JsonArrayConst>();
+                        JsonArrayConst tor = jsonCmdInput["tor"].as<JsonArrayConst>();
+
+                        int idn = jsonCmdInput["idn"].as<int>();
+
+                        jointsCtrl.jsonSyncCtrlHL(id, idn, pos, spd, acc, tor);
+                        break;
+  }
+  case CMD_HL_SYNC_SIMPLE_CTRL:{
+                        JsonArrayConst id  = jsonCmdInput["id"].as<JsonArrayConst>();
+                        JsonArrayConst pos = jsonCmdInput["pos"].as<JsonArrayConst>();
+                        JsonArrayConst tor = jsonCmdInput["tor"].as<JsonArrayConst>();
+
+                        int idn = jsonCmdInput["idn"].as<int>();
+
+                        jointsCtrl.jsonSyncSimpleCtrlHL(id, idn, pos, tor);
+                        break;
+  }
+
+
+
 
   case CMD_SC_CTRL:
                         jointsCtrl.stepsCtrlSC(jsonCmdInput["id"],
@@ -666,7 +713,28 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput) {
                           msg(outputString);
                         }
                         break;
-  
+  case CMD_SC_SYNC_CTRL:{
+                        JsonArrayConst id  = jsonCmdInput["id"].as<JsonArrayConst>();
+                        JsonArrayConst pos = jsonCmdInput["pos"].as<JsonArrayConst>();
+                        JsonArrayConst spd = jsonCmdInput["spd"].as<JsonArrayConst>();
+
+                        int idn = jsonCmdInput["idn"].as<int>();
+
+                        jointsCtrl.jsonSyncCtrlSC(id, idn, pos, spd);
+                        break;
+  }
+  case CMD_SC_SYNC_SIMPLE_CTRL:{
+                        JsonArrayConst id  = jsonCmdInput["id"].as<JsonArrayConst>();
+                        JsonArrayConst pos = jsonCmdInput["pos"].as<JsonArrayConst>();
+
+                        int idn = jsonCmdInput["idn"].as<int>();
+
+                        jointsCtrl.jsonSyncSimpleCtrlSC(id, idn, pos);
+                        break;
+  }
+
+
+
   case CMD_DELAY: 
                         delayInterruptible(jsonCmdInput["delay"]);
                         break;

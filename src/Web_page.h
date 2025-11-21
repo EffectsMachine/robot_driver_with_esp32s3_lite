@@ -553,6 +553,20 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                                 </div>
                                 <button class="w-btn">INPUT</button>
                             </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_STSM_SYNC_CTRL</p>
+                                    <p class="cmd-value">{"T":16,"id":[1,2],"idn":2,"pos":[2047,2047],"spd":[0,0],"acc":[0,0]}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_STSM_SYNC_SIMPLE_CTRL</p>
+                                    <p class="cmd-value">{"T":17,"id":[1,2],"idn":2,"pos":[2047,2047]}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
 
                             <p>HL Servo</p>
 
@@ -591,6 +605,20 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                                 </div>
                                 <button class="w-btn">INPUT</button>
                             </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_HL_SYNC_CTRL</p>
+                                    <p class="cmd-value">{"T":26,"id":[1,2],"idn":2,"pos":[2047,2047],"spd":[0,0],"acc":[0,0],"tor":[500,500]}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_HL_SYNC_SIMPLE_CTRL</p>
+                                    <p class="cmd-value">{"T":27,"id":[1,2],"idn":2,"pos":[2047,2047],"tor":[500,500]}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
 
                             <p>SC Servo</p>
 
@@ -619,6 +647,20 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                                 <div>
                                     <p>CMD_SC_FEEDBACK</p>
                                     <p class="cmd-value">{"T":35,"id":1}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_SC_SYNC_CTRL</p>
+                                    <p class="cmd-value">{"T":36,"id":[1,2],"idn":2,"pos":[511,511],"spd":[0,0]}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_SC_SYNC_SIMPLE_CTRL</p>
+                                    <p class="cmd-value">{"T":37,"id":[1,2],"idn":2,"pos":[511,511]}</p>
                                 </div>
                                 <button class="w-btn">INPUT</button>
                             </div>

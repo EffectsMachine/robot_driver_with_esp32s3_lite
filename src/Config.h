@@ -127,13 +127,13 @@ static int timeOffset = 50;
 // jointsCtrl.feedbackSTSM(u_int8_t id, bool state);
 #define CMD_STSM_FEEDBACK 15
 
-// {"T":16,"id":[1,2],"pos":[2047,2047],"spd":[0,0],"acc":[0,0],"move":1}
-// jointsCtrl.syncCtrl(u_int8_t* id, int*)
+// {"T":16,"id":[1,2],"idn":2,"pos":[2047,2047],"spd":[0,0],"acc":[0,0]}
+// jointsCtrl.jsonSyncCtrlSMST(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst spd, JsonArrayConst acc)
 #define CMD_STSM_SYNC_CTRL 16
 
-// {"T":17}
-#define CMD_STSM_TRIGGER 17
-
+// {"T":17,"id":[1,2],"idn":2,"pos":[2047,2047]}
+// jointsCtrl.jsonSyncSimpleCtrlSMST(JsonArrayConst id, int idn, JsonArrayConst pos)
+#define CMD_STSM_SYNC_SIMPLE_CTRL 17
 
 
 /// --- --- --- < HL Servo > --- --- ---
@@ -157,6 +157,14 @@ static int timeOffset = 50;
 // jointsCtrl.feedbackHL(u_int8_t id, bool state);
 #define CMD_HL_FEEDBACK 25
 
+// {"T":26,"id":[1,2],"idn":2,"pos":[2047,2047],"spd":[0,0],"acc":[0,0],"tor":[500,500]}
+// jointsCtrl.jsonSyncCtrlHL(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst spd, JsonArrayConst acc, JsonArrayConst tor)
+#define CMD_HL_SYNC_CTRL 26
+
+// {"T":27,"id":[1,2],"idn":2,"pos":[2047,2047],"tor":[500,500]}
+// jointsCtrl.jsonSyncSimpleCtrlHL(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst tor)
+#define CMD_HL_SYNC_SIMPLE_CTRL 27
+
 
 
 /// --- --- --- < SC Servo > --- --- ---
@@ -175,6 +183,15 @@ static int timeOffset = 50;
 // {"T":35,"id":1}
 // jointsCtrl.feedbackSC(u_int8_t id, bool state);
 #define CMD_SC_FEEDBACK 35
+
+// {"T":36,"id":[1,2],"idn":2,"pos":[511,511],"spd":[0,0]}
+// jointsCtrl.jsonSyncCtrlHL(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst spd)
+#define CMD_SC_SYNC_CTRL 36
+
+// {"T":37,"id":[1,2],"idn":2,"pos":[511,511]}
+// jointsCtrl.jsonSyncSimpleCtrlHL(JsonArrayConst id, int idn, JsonArrayConst pos)
+#define CMD_SC_SYNC_SIMPLE_CTRL 37
+
 
 
 

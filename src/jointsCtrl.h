@@ -6,6 +6,7 @@
 #include <GJWMotor.h>
 #endif
 #include <math.h>
+#include <ArduinoJson.h>
 
 // class SMS_STS_Public : public SMS_STS {
 // public:
@@ -208,6 +209,15 @@ class JointsCtrl {
         void stepsCtrlSMST(u_int8_t id, int pos, int speed, int acc, bool move_trigger = true);
         void stepsCtrlHL(u_int8_t id, int pos, int speed, int acc, int currt_limit, bool move_trigger = true);
         
+        void jsonSyncCtrlSMST(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst spd, JsonArrayConst acc);
+        void jsonSyncSimpleCtrlSMST(JsonArrayConst id, int idn, JsonArrayConst pos);
+
+        void jsonSyncCtrlHL(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst spd, JsonArrayConst acc, JsonArrayConst tor);
+        void jsonSyncSimpleCtrlHL(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst tor);
+
+        void jsonSyncCtrlSC(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst spd);
+        void jsonSyncSimpleCtrlSC(JsonArrayConst id, int idn, JsonArrayConst pos);
+
         double mapDouble(double x, double in_min, double in_max, double out_min, double out_max);
         int angleCtrlSC(u_int8_t id, int mid_pos, double angle, double speed, bool move_trigger = true);
         int angleCtrlSMST(u_int8_t id, double angle, double speed, double acc, bool move_trigger = true);

@@ -439,6 +439,90 @@ void JointsCtrl::stepsCtrlHL(u_int8_t id, int pos, int speed, int acc, int currt
     }
 }
 
+void JointsCtrl::jsonSyncCtrlSMST(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst spd, JsonArrayConst acc) {
+    uint8_t  id_arr[idn];
+    int16_t  pos_arr[idn];
+    uint16_t spd_arr[idn];
+    uint8_t  acc_arr[idn];
+    for (int i = 0; i < idn; i++) {
+        id_arr[i]  = id[i].as<uint8_t>();
+        pos_arr[i] = pos[i].as<int16_t>();
+        spd_arr[i] = spd[i].as<uint16_t>();
+        acc_arr[i] = acc[i].as<uint8_t>();
+    }
+    smst.SyncWritePosEx(id_arr, idn, pos_arr, spd_arr, acc_arr);
+}
+
+void JointsCtrl::jsonSyncSimpleCtrlSMST(JsonArrayConst id, int idn, JsonArrayConst pos) {
+    uint8_t  id_arr[idn];
+    int16_t  pos_arr[idn];
+    uint16_t spd_arr[idn];
+    uint8_t  acc_arr[idn];
+    for (int i = 0; i < idn; i++) {
+        id_arr[i]  = id[i].as<uint8_t>();
+        pos_arr[i] = pos[i].as<int16_t>();
+        spd_arr[i] = 0;
+        acc_arr[i] = 0;
+    }
+    smst.SyncWritePosEx(id_arr, idn, pos_arr, spd_arr, acc_arr);
+}
+
+void JointsCtrl::jsonSyncCtrlHL(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst spd, JsonArrayConst acc, JsonArrayConst tor) {
+    uint8_t  id_arr[idn];
+    int16_t  pos_arr[idn];
+    uint16_t spd_arr[idn];
+    uint8_t  acc_arr[idn];
+    uint16_t tor_arr[idn];
+    for (int i = 0; i < idn; i++) {
+        id_arr[i]  = id[i].as<uint8_t>();
+        pos_arr[i] = pos[i].as<int16_t>();
+        spd_arr[i] = spd[i].as<uint16_t>();
+        acc_arr[i] = acc[i].as<uint8_t>();
+        tor_arr[i] = tor[i].as<uint16_t>();
+    }
+    hl.SyncWritePosEx(id_arr, idn, pos_arr, spd_arr, acc_arr, tor_arr);
+}
+
+void JointsCtrl::jsonSyncSimpleCtrlHL(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst tor) {
+    uint8_t  id_arr[idn];
+    int16_t  pos_arr[idn];
+    uint16_t spd_arr[idn];
+    uint8_t  acc_arr[idn];
+    uint16_t tor_arr[idn];
+    for (int i = 0; i < idn; i++) {
+        id_arr[i]  = id[i].as<uint8_t>();
+        pos_arr[i] = pos[i].as<int16_t>();
+        spd_arr[i] = 60;
+        acc_arr[i] = 50;
+        tor_arr[i] = 300;
+    }
+    hl.SyncWritePosEx(id_arr, idn, pos_arr, spd_arr, acc_arr, tor_arr);
+}
+
+void JointsCtrl::jsonSyncCtrlSC(JsonArrayConst id, int idn, JsonArrayConst pos, JsonArrayConst spd) {
+    uint8_t  id_arr[idn];
+    uint16_t  pos_arr[idn];
+    uint16_t spd_arr[idn];
+    for (int i = 0; i < idn; i++) {
+        id_arr[i]  = id[i].as<uint8_t>();
+        pos_arr[i] = pos[i].as<uint16_t>();
+        spd_arr[i] = spd[i].as<uint16_t>();
+    }
+    sc.SyncWritePos(id_arr, idn, pos_arr, 0, spd_arr);
+}
+
+void JointsCtrl::jsonSyncSimpleCtrlSC(JsonArrayConst id, int idn, JsonArrayConst pos) {
+    uint8_t  id_arr[idn];
+    uint16_t  pos_arr[idn];
+    uint16_t spd_arr[idn];
+    for (int i = 0; i < idn; i++) {
+        id_arr[i]  = id[i].as<uint8_t>();
+        pos_arr[i] = pos[i].as<uint16_t>();
+        spd_arr[i] = 0;
+    }
+    sc.SyncWritePos(id_arr, idn, pos_arr, 0, spd_arr);
+}
+
 double JointsCtrl::mapDouble(double x, double in_min, double in_max, double out_min, double out_max) {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
