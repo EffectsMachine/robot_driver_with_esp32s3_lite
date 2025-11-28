@@ -314,7 +314,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
         <div>
             <section>
                 <div>
-                    <h2 class="tittle-h2">Device Infomation</h2>
+                    <h2 class="tittle-h2">Device Information</h2>
                     <p id="upTime">Disconnected</p>
                     <p id="baudrate">Current Baud Rate: 1000000</p>
                     <p id="MAC">MAC: FF:FF:FF:FF:FF:FF</p>
