@@ -80,16 +80,16 @@ def main():
         # time.sleep(1.5)
 
     while True:
-        send_json({"T":138,"xyzg":[230,100,200,-50],"spd":1.2})
+        send_json({"T":138,"xyzg":[230,100,200,0],"spd":1.2})
         time.sleep(1.5)
 
-        send_json({"T":138,"xyzg":[230,100,0,0],"spd":1.2})
+        send_json({"T":138,"xyzg":[230,100,0,50],"spd":1.2})
         time.sleep(1.5)
 
-        send_json({"T":138,"xyzg":[230,-100,0,0],"spd":1.2})
+        send_json({"T":138,"xyzg":[230,-100,0,50],"spd":1.2})
         time.sleep(1.5)
 
-        send_json({"T":138,"xyzg":[230,-100,200,-50],"spd":1.2})
+        send_json({"T":138,"xyzg":[230,-100,200,0],"spd":1.2})
         time.sleep(1.5)
 
     # while True:

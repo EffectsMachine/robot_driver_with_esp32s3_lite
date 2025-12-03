@@ -314,7 +314,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
         <div>
             <section>
                 <div>
-                    <h2 class="tittle-h2">Device Infomation</h2>
+                    <h2 class="tittle-h2">Device Information</h2>
                     <p id="upTime">Disconnected</p>
                     <p id="baudrate">Current Baud Rate: 1000000</p>
                     <p id="MAC">MAC: FF:FF:FF:FF:FF:FF</p>
@@ -337,7 +337,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                             </div>
                         </div>
                         <div class="set-btn-sections">
-                            <p id="fpv_z">Z-axis</p>
+                            <p id="fpv_z">Z-Axis</p>
                             <div>
                                 <button class="btn-num btn-num-bg btn-num-up" onmousedown="cmdSend(1,13,0.5);" ontouchstart="cmdSend(1,13,0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">Z+</button>
                                 <button class="btn-num btn-num-bg btn-num-down" onmousedown="cmdSend(1,13,-0.5);" ontouchstart="cmdSend(1,13,-0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">Z-</button>
@@ -359,21 +359,21 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                 <div class="set-btn-frame">
                     <div class="set-btn-frame-i">
                         <div class="set-btn-sections">
-                            <p id="cart_x">X</p>
+                            <p id="cart_x">X-Axis</p>
                             <div>
-                                <button class="btn-num btn-num-bg btn-num-up" onmousedown="cmdSend(1,1,0.5);" ontouchstart="cmdSend(1,1,0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">R+</button>
-                                <button class="btn-num btn-num-bg btn-num-down" onmousedown="cmdSend(1,1,-0.5);" ontouchstart="cmdSend(1,1,-0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">R-</button>
+                                <button class="btn-num btn-num-bg btn-num-up" onmousedown="cmdSend(1,1,0.5);" ontouchstart="cmdSend(1,1,0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">X+</button>
+                                <button class="btn-num btn-num-bg btn-num-down" onmousedown="cmdSend(1,1,-0.5);" ontouchstart="cmdSend(1,1,-0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">X-</button>
                             </div>
                         </div>
                         <div class="set-btn-sections">
-                            <p id="cart_y">Y</p>
+                            <p id="cart_y">Y-Axis</p>
                             <div>
-                                <button class="btn-num btn-num-bg btn-num-up" onmousedown="cmdSend(1,2,0.5);" ontouchstart="cmdSend(1,2,0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">B+</button>
-                                <button class="btn-num btn-num-bg btn-num-down" onmousedown="cmdSend(1,2,-0.5);" ontouchstart="cmdSend(1,2,-0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">B-</button>
+                                <button class="btn-num btn-num-bg btn-num-up" onmousedown="cmdSend(1,2,0.5);" ontouchstart="cmdSend(1,2,0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">Y+</button>
+                                <button class="btn-num btn-num-bg btn-num-down" onmousedown="cmdSend(1,2,-0.5);" ontouchstart="cmdSend(1,2,-0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">Y-</button>
                             </div>
                         </div>
                         <div class="set-btn-sections">
-                            <p id="cart_z">Z</p>
+                            <p id="cart_z">Z-Axis</p>
                             <div>
                                 <button class="btn-num btn-num-bg btn-num-up" onmousedown="cmdSend(1,3,0.5);" ontouchstart="cmdSend(1,3,0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">Z+</button>
                                 <button class="btn-num btn-num-bg btn-num-down" onmousedown="cmdSend(1,3,-0.5);" ontouchstart="cmdSend(1,3,-0.5);" onmouseup="cmdSend(0,-1,0);" ontouchend="cmdSend(0,-1,0)">Z-</button>
@@ -464,22 +464,30 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                                 <textarea id="jsonAuto" placeholder="Input json cmd here." rows="4" wrap="off"></textarea>
                             </div>
                             <div style="margin-bottom: 20px;">
-                                <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:up?")){createMission("up");}'>Up</button>
-                                <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:down?")){createMission("down");}'>Down</button>
-                                <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:left?")){createMission("left");}'>Left</button>
-                                <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:right?")){createMission("right");}'>Right</button>
+                                <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:a?")){createMission("a");}'>Set:a</button>
+                                <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:b?")){createMission("b");}'>Set:b</button>
+                                <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:c?")){createMission("c");}'>Set:c</button>
+                                <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Creat a mission:d?")){createMission("d");}'>Set:d</button>
                             </div>
-                            <div><button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px; background:red; color:white;" onclick='if (confirm("Creat a mission:boot_user?")){createMission("boot_user");}'>On Boot</button></div>
+                            <div><button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px; background:red; color:white;" onclick='if (confirm("Creat a mission:boot_user?")){createMission("boot_user");}'>Set:On Boot</button></div>
                             <div><button class="btn-of btn-main-m btn-all-bg" onclick="stopMission();">STOP MISSION</button></div>
                         </div>
+                        <h2 id="runMission">Run Mission</h2>
+                        <div style="margin-bottom: 20px;">
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='sendJsonCmd({"T":308,"name":"a","interval":0,"loop":1});'>Run:a</button>
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='sendJsonCmd({"T":308,"name":"b","interval":0,"loop":1});'>Run:b</button>
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='sendJsonCmd({"T":308,"name":"c","interval":0,"loop":1});'>Run:c</button>
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='sendJsonCmd({"T":308,"name":"d","interval":0,"loop":1});'>Run:d</button>
+                        </div>
+                        <div><button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px; background:red; color:white;" onclick='sendJsonCmd({"T":308,"name":"boot_user","interval":0,"loop":1});'>Run:On Boot (Once)</button></div>
                         <h2 id="deleteMission">Delete Mission</h2>
                         <div style="margin-bottom: 20px;">
-                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:up?")){deleteMission("up");}'>Up</button>
-                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:down?")){deleteMission("down");}'>Down</button>
-                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:left?")){deleteMission("left");}'>Left</button>
-                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:right?")){deleteMission("right");}'>Right</button>
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:a?")){deleteMission("a");}'>Del:a</button>
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:b?")){deleteMission("b");}'>Del:b</button>
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:c?")){deleteMission("c");}'>Del:c</button>
+                            <button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px;" onclick='if (confirm("Delete mission:d?")){deleteMission("d");}'>Del:d</button>
                         </div>
-                        <div><button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px; background:red; color:white;" onclick='if (confirm("Delete mission:boot_user?")){deleteMission("boot_user");}'>On Boot</button></div>
+                        <div><button class="btn-of btn-all" style="min-width:110px; padding:10px 15px; margin:5px; background:red; color:white;" onclick='if (confirm("Delete mission:boot_user?")){deleteMission("boot_user");}'>Del:On Boot</button></div>
                 </div>
                 <div>
                     <div class="fb-input-info">
@@ -557,22 +565,8 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                             </div>
                             <div class="info-box json-cmd-info">
                                 <div>
-                                    <p>CMD_SET_MAX_JOINTS_SPEED</p>
-                                    <p class="cmd-value">{"T":140,"spd":1.2}</p>
-                                </div>
-                                <button class="w-btn">INPUT</button>
-                            </div>
-                            <div class="info-box json-cmd-info">
-                                <div>
                                     <p>CMD_SET_LINK_ARM_FEEDBACK_FLAG</p>
                                     <p class="cmd-value">{"T":145,"flag":0,"hz":10}</p>
-                                </div>
-                                <button class="w-btn">INPUT</button>
-                            </div>
-                            <div class="info-box json-cmd-info">
-                                <div>
-                                    <p>CMD_CONST_CTRL</p>
-                                    <p class="cmd-value">{"T":146,"flag":0,"axis":0,"delta":0.01}</p>
                                 </div>
                                 <button class="w-btn">INPUT</button>
                             </div>
@@ -1220,8 +1214,8 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                     sendJsonCmd(jsonData3);
                     console.log(`sending ${index + 1}/${total_num_steps}`);
                     document.getElementById("AutoScropts").innerHTML = `sending ${index + 1}/${total_num_steps}`;
-                    // delay 500ms
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    // delay 100ms
+                    await new Promise(resolve => setTimeout(resolve, 100));
                 } catch (err) {
                     console.error("cmd " + (index + 1) + " not a valid JSON:", line);
                     document.getElementById("AutoScropts").innerHTML = "cmd " + (index + 1) + " not a valid JSON:" + line;
