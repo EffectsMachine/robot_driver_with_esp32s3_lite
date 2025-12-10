@@ -8,6 +8,7 @@ void JointsCtrl::init(int baud) {
     sc.pSerial = &Serial1;
     smst.pSerial = &Serial1;
     hl.pSerial = &Serial1;
+    node.pSerial = &Serial1;
 #else
     Serial0.begin(500000);
     sc.pSerial = &Serial0;
@@ -1060,20 +1061,35 @@ void JointsCtrl::allLedCtrl(u_int8_t id, u_int8_t r, u_int8_t g, u_int8_t b) {
 }
 
 int JointsCtrl::readSBUS() {
-    sbus[0] = smst.readByte(40, 67);
-    sbus[1] = smst.readWord(40, 68);
-    sbus[2] = smst.readWord(40, 70);
-    sbus[3] = smst.readWord(40, 72);
+    if(node.sbusFlush(0)){
+        sbus[0] = node.sbusStatus();//subs status
+        for(int ch=1; ch<=node.subsGetNum(); ch++){
+            sbus[ch] = node.sbusGetch(ch);
+        }
+    }else{
+        return -1;
+    }
+    return sbus[0];
+}
 
-    sbus[4] = smst.readWord(40, 74);
-    sbus[5] = smst.readWord(40, 76);
-    sbus[6] = smst.readWord(40, 78);
-    sbus[7] = smst.readWord(40, 80);
+void JointsCtrl::ttlnChangeID(u_int8_t old_id, u_int8_t new_id) {
+    node.unLockEprom(old_id);
+    node.writeByte(old_id, LY_NODE_ID, new_id);
+    node.LockEprom(new_id);
+}
 
-    sbus[8] = smst.readWord(40, 82);
-    sbus[9] = smst.readWord(40, 84);
-    sbus[10] = smst.readWord(40, 86);
-    sbus[11] = smst.readWord(40, 88);
+void JointsCtrl::ttlnCtrlPWM(u_int8_t node_id, int pwm_ch, int pwm_val) {
+    node.pwmCtl(node_id, pwm_ch, pwm_val);
+}
 
-    return sbus[2];
+void JointsCtrl::ttlnCtrlSingleLed(u_int8_t node_id, int rgb_ch, int r, int g, int b) {
+    node.ledSingleCtrl(node_id, rgb_ch, g, r, b);//node_id, rgb_ch, r, g, b
+}
+
+void JointsCtrl::ttlnLedFlush(u_int8_t node_id, int led_num) {
+    node.ledFlush(node_id, led_num);
+}
+
+void JointsCtrl::ttlnCtrlAllLed(u_int8_t node_id, int led_num, int r, int g, int b) {
+    node.ledAllCtrl(node_id, led_num, g, r, b);
 }

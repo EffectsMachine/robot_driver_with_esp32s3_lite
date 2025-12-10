@@ -378,6 +378,18 @@ static int timeOffset = 50;
 // {"T":207,"L":0,"I0":0,"I1":0,"I2":0}
 #define CMD_BUTTONS 207
 
+// ---< TTL Node Ctrl >---
+// {"T":208,"old":0,"new":1}
+#define CMD_NODE_CHANG_ID 208
+// {"T":209,"id":0,"ch":0,"pwm":1000}
+#define CMD_NODE_CTRL_PWM 209
+// {"T":210,"id":0,"ch":0,"r":7,"g":7,"b":7}
+#define CMD_NODE_SINGLE_LED 210
+// {"T":211,"id":0,"num":2}
+#define CMD_NODE_FLUSH 211
+// {"T":212,"id":0,"num":2,"r":7,"g":7,"b":7}
+#define CMD_NODE_CTRL_ALL_LED 212
+
 
 // scan files
 // {"T":300}

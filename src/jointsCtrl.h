@@ -2,6 +2,7 @@
 #define JOINTS_CTRL_H
 
 #include <SCServo.h>
+#include <lygion_devs.h>
 #ifdef USE_HUB_MOTORS
 #include <GJWMotor.h>
 #endif
@@ -61,6 +62,7 @@ class JointsCtrl {
         SCSCL sc;
         SMS_STS smst;
         HLSCL hl;
+        NodeClass node;
 #ifdef USE_HUB_MOTORS
         GQDMD gqdmd;
 #endif
@@ -266,6 +268,12 @@ class JointsCtrl {
         
         bool constantCtrl(bool flag, int axis, double delta);
         void constantCtrlLoop();
+
+        void ttlnChangeID(u_int8_t old_id, u_int8_t new_id);
+        void ttlnCtrlPWM(u_int8_t old_id, int pwm_ch, int pwm_val);
+        void ttlnCtrlSingleLed(u_int8_t node_id, int rgb_ch, int r, int g, int b);
+        void ttlnLedFlush(u_int8_t node_id, int led_num);
+        void ttlnCtrlAllLed(u_int8_t node_id, int led_num, int r, int g, int b);
 
         void ttlTestMachine();
     };

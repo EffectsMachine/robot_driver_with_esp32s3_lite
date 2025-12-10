@@ -1106,7 +1106,33 @@ void jsonCmdReceiveHandler(const JsonDocument& jsonCmdInput) {
   //                                             jsonCmdInput["I1"],
   //                                             jsonCmdInput["I2"]);
   //                       break;
-
+  case CMD_NODE_CHANG_ID:
+                        jointsCtrl.ttlnChangeID(jsonCmdInput["old"],
+                                                jsonCmdInput["new"]);
+                        break;
+  case CMD_NODE_CTRL_PWM:
+                        jointsCtrl.ttlnCtrlPWM(jsonCmdInput["id"],
+                                               jsonCmdInput["ch"],
+                                               jsonCmdInput["pwm"]);
+                        break;
+  case CMD_NODE_SINGLE_LED:
+                        jointsCtrl.ttlnCtrlSingleLed(jsonCmdInput["id"],
+                                                     jsonCmdInput["ch"],
+                                                     jsonCmdInput["r"],
+                                                     jsonCmdInput["g"],
+                                                     jsonCmdInput["b"]);
+                        break;
+  case CMD_NODE_FLUSH:
+                        jointsCtrl.ttlnLedFlush(jsonCmdInput["id"],
+                                                jsonCmdInput["num"]);
+                        break;
+  case CMD_NODE_CTRL_ALL_LED:
+                        jointsCtrl.ttlnCtrlAllLed(jsonCmdInput["id"],
+                                                  jsonCmdInput["num"],
+                                                  jsonCmdInput["r"],
+                                                  jsonCmdInput["g"],
+                                                  jsonCmdInput["b"]);
+                        break;
 
 
   case CMD_SCAN_FILES:

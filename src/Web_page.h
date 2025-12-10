@@ -665,7 +665,7 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                                 <button class="w-btn">INPUT</button>
                             </div>
 
-                            <p>Delay & Display</p>
+                            <p>Delay & Display & Node</p>
 
                             <div class="info-box json-cmd-info">
                                 <div>
@@ -706,6 +706,41 @@ static const char PROGMEM INDEX_HTML[] = R"HTML(
                                 <div>
                                     <p>CMD_BUZZER_CTRL</p>
                                     <p class="cmd-value">{"T":206,"freq":1000,"duration":1000}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_NODE_CHANG_ID</p>
+                                    <p class="cmd-value">{"T":208,"old":0,"new":1}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_NODE_CTRL_PWM</p>
+                                    <p class="cmd-value">{"T":209,"id":0,"ch":0,"pwm":1000}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_NODE_SINGLE_LED</p>
+                                    <p class="cmd-value">{"T":210,"id":0,"ch":0,"r":7,"g":7,"b":7}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_NODE_FLUSH</p>
+                                    <p class="cmd-value">{"T":211,"id":0,"num":2}</p>
+                                </div>
+                                <button class="w-btn">INPUT</button>
+                            </div>
+                            <div class="info-box json-cmd-info">
+                                <div>
+                                    <p>CMD_NODE_CTRL_ALL_LED</p>
+                                    <p class="cmd-value">{"T":212,"id":0,"num":2,"r":7,"g":7,"b":7}</p>
                                 </div>
                                 <button class="w-btn">INPUT</button>
                             </div>
